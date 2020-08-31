@@ -1,16 +1,22 @@
+const { resolve } = require('path');
 const yargs = require('yargs');
 const { green, level } = require('chalk');
 
-function requireFromMain(id) {
-  // eslint-disable-next-line global-require, import/no-dynamic-require
-  return require(require.resolve(id, { paths: [require.main.path] }));
+function requireFromMain(moduleId) {
+  /* eslint-disable global-require, import/no-dynamic-require */
+  if (moduleId.startsWith('./')) {
+    return require(resolve(require.main.path, moduleId));
+  }
+
+  return require(moduleId);
+  /* eslint-enable global-require, import/no-dynamic-require */
 }
 
 function findCmd(path) {
   try {
     return requireFromMain(path);
   } catch {
-    return { command: '' };
+    return undefined;
   }
 }
 
@@ -59,7 +65,7 @@ module.exports = class Cheetor {
         coerce: () => level > 0,
         describe: 'Colorful output',
         type: 'boolean',
-        hide: true,
+        hidden: true,
       });
   }
 
@@ -75,8 +81,11 @@ module.exports = class Cheetor {
   }
 
   commandSmart(path) {
-    this.hasCommand = true;
-    this.cli.command(findCmd(path));
+    const mod = findCmd(path);
+    if (mod) {
+      this.hasCommand = true;
+      this.cli.command(mod);
+    }
     return this;
   }
 
@@ -88,6 +97,11 @@ module.exports = class Cheetor {
   effect(action) {
     const { scriptName } = this;
     action({ scriptName });
+    return this;
+  }
+
+  middleware(...args) {
+    this.cli.middleware(...args);
     return this;
   }
 
