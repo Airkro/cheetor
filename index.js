@@ -4,7 +4,7 @@ const { green, level } = require('chalk');
 
 function requireFromMain(moduleId) {
   /* eslint-disable global-require, import/no-dynamic-require */
-  if (moduleId.startsWith('./')) {
+  if (moduleId.startsWith('.')) {
     return require(resolve(require.main.path, moduleId));
   }
 
@@ -34,24 +34,32 @@ function ready() {
     this.cli.usage(`Usage: ${green('$0')}`);
   }
 
-  this.cli
-    .epilogue(hasWebsite ? `Website: ${site}` : '\u001B[0m')
-    .epilogue(hasWebsite ? '\u001B[0m' : '');
+  if (hasWebsite) {
+    this.cli.epilogue(`Website: ${site}`);
+  }
+
+  if (repository) {
+    this.cli.epilogue(`Repository: ${repository}`);
+  }
 }
 
 module.exports = class Cheetor {
   constructor(path = './package.json') {
     const {
-      name,
-      version,
-      bin = {},
+      bin,
       homepage,
-      repository: { url } = {},
+      name = 'cheetor',
+      repository: { url = '' } = {},
+      version,
     } = requireFromMain(path);
 
-    this.repository = url.replace(/\.git$/, '');
+    this.repository = url.includes('github.com')
+      ? url.replace(/\.git$/, '')
+      : '';
     this.homepage = homepage;
-    this.scriptName = typeof bin === 'string' ? name : Object.keys(bin)[0];
+    this.scriptName = ['string', 'undefined'].includes(typeof bin)
+      ? name
+      : Object.keys(bin)[0];
 
     this.cli = yargs
       .strict()
@@ -61,9 +69,7 @@ module.exports = class Cheetor {
       .version(version)
       .hide('version')
       .detectLocale(false)
-      .epilogue(`Repository: ${this.repository}`)
       .scriptName(this.scriptName)
-      .usage('')
       .option('color', {
         coerce: () => level > 0,
         describe: 'Colorful output',

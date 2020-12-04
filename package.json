@@ -24,17 +24,19 @@
   "main": "index.js",
   "scripts": {
     "format": "nice-move lint",
-    "prepublishOnly": "git add . && yarn format"
+    "prepublishOnly": "git add . && yarn format && yarn test",
+    "test": "ava --verbose"
   },
   "dependencies": {
     "chalk": "^4.1.0",
-    "yargs": "^15.4.1"
+    "yargs": "^16.1.1"
   },
   "devDependencies": {
     "@nice-move/cli": "^0.5.9",
     "@nice-move/commitlint-config": "^0.0.0",
     "@nice-move/eslint-config-base": "^0.4.0",
     "@nice-move/prettier-config": "^0.3.5",
+    "ava": "^3.13.0",
     "commitlint": "^11.0.0",
     "eslint": "^6.8.0",
     "husky": "^4.3.0",
@@ -54,7 +56,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "nice-move lint",
+      "pre-commit": "nice-move lint && ava --verbose",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
