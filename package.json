@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -22,6 +22,7 @@
     "url": "https://github.com/airkro/cheetor/issues"
   },
   "main": "index.js",
+  "files": [],
   "scripts": {
     "format": "nice-move lint",
     "prepublishOnly": "git add . && yarn format && yarn test",

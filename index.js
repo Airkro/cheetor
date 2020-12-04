@@ -16,7 +16,10 @@ function findCmd(path) {
   try {
     return requireFromMain(path);
   } catch (error) {
-    if (error.code === 'MODULE_NOT_FOUND') {
+    if (
+      error.code === 'MODULE_NOT_FOUND' &&
+      error.requireStack[0] === __filename
+    ) {
       return undefined;
     }
     throw error;

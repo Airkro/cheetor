@@ -4,23 +4,19 @@ const { exec } = require('child_process');
 
 const pkg = require('../package.json');
 
-function testCmd(name, command, checker) {
+function testCmdPass(name, command, checker) {
   test.cb(name, (t) => {
-    exec(command, (error, stdout, stderr) => {
+    exec(command, (error, stdout) => {
       if (error) {
-        t.fail(error.message);
-      }
-
-      if (stderr) {
-        t.fail(stderr);
+        t.fail("shouldn't fail");
       }
 
       if (stdout) {
         t.log(stdout);
+      }
 
-        if (checker) {
-          checker(t, stdout.trim().split('\n'));
-        }
+      if (checker) {
+        checker(t, stdout.trim().split('\n'));
       }
 
       t.end();
@@ -28,13 +24,43 @@ function testCmd(name, command, checker) {
   });
 }
 
-testCmd('base', 'node ./test/fixture/sample.js');
+function testCmdFail(name, command, checker) {
+  test.cb(name, (t) => {
+    exec(command, (error, stdout, stderr) => {
+      if (!error) {
+        t.fail('should fail');
+      }
 
-testCmd('help', 'node ./test/fixture/sample.js -h', (t, stdout) => {
+      if (stdout) {
+        t.log(stdout);
+      }
+
+      if (checker) {
+        checker(t, stderr);
+      }
+
+      t.end();
+    });
+  });
+}
+
+testCmdPass('base', 'node ./test/fixture/base.js', (t, stdout) => {
+  t.deepEqual(stdout, ['']);
+});
+
+testCmdPass('help', 'node ./test/fixture/base.js -h', (t, stdout) => {
   t.deepEqual(stdout, [
     `Usage: ${pkg.name}`,
     '',
     `Website: ${pkg.homepage}`,
     `Repository: ${pkg.repository.url.replace(/\.git$/, '')}`,
   ]);
+});
+
+testCmdPass('success', 'node ./test/fixture/success.js', (t, stdout) => {
+  t.deepEqual(stdout, ['']);
+});
+
+testCmdFail('fail', 'node ./test/fixture/fail.js', (t, stderr) => {
+  t.not(stderr, '');
 });
