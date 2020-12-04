@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -8,7 +8,9 @@
     "email": "airkro@qq.com"
   },
   "keywords": [
+    "builder",
     "cli",
+    "utils",
     "yargs"
   ],
   "homepage": "https://www.npmjs.com/package/cheetor",
@@ -29,22 +31,31 @@
     "yargs": "^15.4.1"
   },
   "devDependencies": {
-    "@nice-move/cli": "^0.4.5",
-    "@nice-move/eslint-config-base": "^0.3.9",
-    "@nice-move/prettier-config": "^0.3.0",
+    "@nice-move/cli": "^0.5.9",
+    "@nice-move/commitlint-config": "^0.0.0",
+    "@nice-move/eslint-config-base": "^0.4.0",
+    "@nice-move/prettier-config": "^0.3.5",
+    "commitlint": "^11.0.0",
     "eslint": "^6.8.0",
-    "husky": "^4.2.5",
-    "prettier": "^2.1.1"
+    "husky": "^4.3.0",
+    "prettier": "^2.2.1"
   },
   "engines": {
     "node": "^10.18 || >=12.14 || ^14"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "commitlint": {
+    "extends": "@nice-move/commitlint-config"
   },
   "eslintConfig": {
     "extends": "@nice-move/eslint-config-base"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "nice-move lint"
+      "pre-commit": "nice-move lint",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
   "prettier": "@nice-move/prettier-config"

@@ -15,8 +15,11 @@ function requireFromMain(moduleId) {
 function findCmd(path) {
   try {
     return requireFromMain(path);
-  } catch {
-    return undefined;
+  } catch (error) {
+    if (error.code === 'MODULE_NOT_FOUND') {
+      return undefined;
+    }
+    throw error;
   }
 }
 
@@ -39,6 +42,7 @@ function ready() {
 module.exports = class Cheetor {
   constructor(path = './package.json') {
     const {
+      name,
       version,
       bin = {},
       homepage,
@@ -47,8 +51,7 @@ module.exports = class Cheetor {
 
     this.repository = url.replace(/\.git$/, '');
     this.homepage = homepage;
-    // eslint-disable-next-line prefer-destructuring
-    this.scriptName = Object.keys(bin)[0];
+    this.scriptName = typeof bin === 'string' ? name : Object.keys(bin)[0];
 
     this.cli = yargs
       .strict()
