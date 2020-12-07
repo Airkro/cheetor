@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "chalk": "^4.1.0",
-    "yargs": "^16.1.1"
+    "yargs": "^16.2.0"
   },
   "devDependencies": {
     "@nice-move/cli": "^0.5.9",

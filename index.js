@@ -5,7 +5,7 @@ const { green, level } = require('chalk');
 function requireFromMain(moduleId) {
   /* eslint-disable global-require, import/no-dynamic-require */
   if (moduleId.startsWith('.')) {
-    return require(resolve(require.main.path, moduleId));
+    return require(resolve(module.parent.path || require.main.path, moduleId));
   }
 
   return require(moduleId);
