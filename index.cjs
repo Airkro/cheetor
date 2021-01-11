@@ -10,7 +10,11 @@ function requireFromMainSafe(path) {
   try {
     return requireFromMain(path);
   } catch (error) {
-    if (error.code === 'MODULE_NOT_FOUND' && error.requireStack[0] === root) {
+    if (
+      error.code === 'MODULE_NOT_FOUND' &&
+      error.requireStack &&
+      error.requireStack[0] === root
+    ) {
       // eslint-disable-next-line consistent-return
       return;
     }
@@ -86,7 +90,7 @@ module.exports = class Cheetor {
 
   commandSmart(path) {
     const mod = requireFromMainSafe(path);
-    if (mod) {
+    if (mod && mod.command) {
       this.hasCommand = true;
       this.cli.command(mod);
     }

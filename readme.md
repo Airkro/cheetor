@@ -17,3 +17,11 @@ Build interactive command line tools.
 ```bash
 npm install cheetor --save
 ```
+
+## Usage
+
+```js
+const Cheetor = require('cheetor');
+
+new Cheetor().setup();
+```
