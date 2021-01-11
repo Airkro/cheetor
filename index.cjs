@@ -1,26 +1,18 @@
-const { resolve } = require('path');
+const { createRequire } = require('module');
 const yargs = require('yargs');
 const { green, level } = require('chalk');
 
-function requireFromMain(moduleId) {
-  /* eslint-disable global-require, import/no-dynamic-require */
-  if (moduleId.startsWith('.')) {
-    return require(resolve(module.parent.path || require.main.path, moduleId));
-  }
+const root = (module.parent && module.parent.filename) || require.main.filename;
 
-  return require(moduleId);
-  /* eslint-enable global-require, import/no-dynamic-require */
-}
+const requireFromMain = createRequire(root);
 
-function findCmd(path) {
+function requireFromMainSafe(path) {
   try {
     return requireFromMain(path);
   } catch (error) {
-    if (
-      error.code === 'MODULE_NOT_FOUND' &&
-      error.requireStack[0] === __filename
-    ) {
-      return undefined;
+    if (error.code === 'MODULE_NOT_FOUND' && error.requireStack[0] === root) {
+      // eslint-disable-next-line consistent-return
+      return;
     }
     throw error;
   }
@@ -93,7 +85,7 @@ module.exports = class Cheetor {
   }
 
   commandSmart(path) {
-    const mod = findCmd(path);
+    const mod = requireFromMainSafe(path);
     if (mod) {
       this.hasCommand = true;
       this.cli.command(mod);

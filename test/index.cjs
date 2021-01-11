@@ -49,11 +49,11 @@ function testCmdFail(name, command, checker) {
   });
 }
 
-testCmdPass('base', 'node ./test/fixture/base.js', (t, stdout) => {
+testCmdPass('base', 'node ./test/fixture/base.cjs', (t, stdout) => {
   t.deepEqual(stdout, ['']);
 });
 
-testCmdPass('help', 'node ./test/fixture/base.js -h', (t, stdout) => {
+testCmdPass('help', 'node ./test/fixture/base.cjs -h', (t, stdout) => {
   t.deepEqual(stdout, [
     `Usage: ${pkg.name}`,
     '',
@@ -62,14 +62,14 @@ testCmdPass('help', 'node ./test/fixture/base.js -h', (t, stdout) => {
   ]);
 });
 
-testCmdPass('success', 'node ./test/fixture/success.js', (t, stdout) => {
+testCmdPass('success', 'node ./test/fixture/success.cjs', (t, stdout) => {
   t.deepEqual(stdout, ['']);
 });
 
-testCmdFail('fail', 'node ./test/fixture/fail.js', (t, stderr) => {
+testCmdFail('fail', 'node ./test/fixture/fail.cjs', (t, stderr) => {
   t.is(stderr[4], `Error: Cannot find module 'tape'`);
 });
 
-testCmdPass('deep', 'node ./test/fixture/deep.js', (t, stdout) => {
+testCmdPass('deep', 'node ./test/fixture/deep.cjs', (t, stdout) => {
   t.deepEqual(stdout, ['']);
 });
