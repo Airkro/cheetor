@@ -88,8 +88,17 @@ module.exports = class Cheetor {
     return this;
   }
 
-  commandSmart(path) {
+  commandSafe(path) {
     const mod = requireFromMainSafe(path);
+    if (mod && mod.command) {
+      this.hasCommand = true;
+      this.cli.command(mod);
+    }
+    return this;
+  }
+
+  commandSmart(func) {
+    const mod = func();
     if (mod && mod.command) {
       this.hasCommand = true;
       this.cli.command(mod);
