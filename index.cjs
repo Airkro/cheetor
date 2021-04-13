@@ -82,17 +82,23 @@ module.exports = class Cheetor {
     return this;
   }
 
-  command(path) {
+  command(...args) {
+    this.cli.command(...args);
     this.hasCommand = true;
+    return this;
+  }
+
+  commandFrom(path) {
     this.cli.command(requireFromMain(path));
+    this.hasCommand = true;
     return this;
   }
 
   commandSafe(path) {
     const mod = requireFromMainSafe(path);
     if (mod && mod.command) {
-      this.hasCommand = true;
       this.cli.command(mod);
+      this.hasCommand = true;
     }
     return this;
   }
@@ -100,8 +106,8 @@ module.exports = class Cheetor {
   commandSmart(func) {
     const mod = func();
     if (mod && mod.command) {
-      this.hasCommand = true;
       this.cli.command(mod);
+      this.hasCommand = true;
     }
     return this;
   }
