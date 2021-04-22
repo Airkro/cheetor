@@ -67,7 +67,7 @@ testCmdPass('success', 'node ./test/fixture/success.cjs', (t, stdout) => {
 });
 
 testCmdFail('fail', 'node ./test/fixture/fail.cjs', (t, stderr) => {
-  t.is(stderr[4], `Error: Cannot find module 'tape'`);
+  t.is(stderr[4], `Error: 456`);
 });
 
 testCmdPass('deep', 'node ./test/fixture/deep.cjs', (t, stdout) => {
