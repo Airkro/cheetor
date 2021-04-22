@@ -1,14 +1,15 @@
 const { createRequire } = require('module');
 const yargs = require('yargs');
 const { green, level } = require('chalk');
+const { fileURLToPath } = require('url');
 
-const root = (module.parent && module.parent.filename) || require.main.filename;
+function requireFromMain(path, root) {
+  return createRequire(root)(path);
+}
 
-const requireFromMain = createRequire(root);
-
-function requireFromMainSafe(path) {
+function requireFromMainSafe(path, root) {
   try {
-    return requireFromMain(path);
+    return requireFromMain(path, root);
   } catch (error) {
     if (
       error.code === 'MODULE_NOT_FOUND' &&
@@ -42,15 +43,25 @@ function ready() {
   }
 }
 
+const { main = {} } = require || {};
+const { parent = main } = module;
+const { filename: defaultRoot } = parent;
+
 module.exports = class Cheetor {
-  constructor(path = './package.json') {
+  constructor(pkg = './package.json', root = defaultRoot) {
+    if (!root) {
+      throw new Error('root is required');
+    }
+
     const {
       bin,
       homepage,
       name = 'cheetor',
       repository: { url = '' } = {},
       version,
-    } = requireFromMain(path);
+    } = typeof pkg === 'string' ? createRequire(root)(pkg) : pkg;
+
+    this.root = new URL(root).protocol === 'file:' ? fileURLToPath(root) : root;
 
     this.repository = url.includes('github.com')
       ? url.replace(/\.git$/, '')
@@ -89,13 +100,14 @@ module.exports = class Cheetor {
   }
 
   commandFrom(path) {
-    this.cli.command(requireFromMain(path));
+    const io = requireFromMain(path, this.root);
+    this.cli.command(io);
     this.hasCommand = true;
     return this;
   }
 
   commandSafe(path) {
-    const mod = requireFromMainSafe(path);
+    const mod = requireFromMainSafe(path, this.root);
     if (mod && mod.command) {
       this.cli.command(mod);
       this.hasCommand = true;

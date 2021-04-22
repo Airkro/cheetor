@@ -1,9 +1,9 @@
-const test = require('ava').default;
+import test from 'ava';
+import { exec } from 'child_process';
+import { createRequire } from 'module';
+import { EOL } from 'os';
 
-const { EOL } = require('os');
-const { exec } = require('child_process');
-
-const pkg = require('../package.json');
+const pkg = createRequire(import.meta.url)('../package.json');
 
 function testCmdPass(name, command, checker) {
   test.cb(name, (t) => {
@@ -62,7 +62,7 @@ testCmdPass('help', 'node ./test/fixture/base.cjs -h', (t, stdout) => {
   ]);
 });
 
-testCmdPass('success', 'node ./test/fixture/success.cjs', (t, stdout) => {
+testCmdPass('success', 'node ./test/fixture/okay.cjs', (t, stdout) => {
   t.deepEqual(stdout, ['']);
 });
 
@@ -72,4 +72,25 @@ testCmdFail('fail', 'node ./test/fixture/fail.cjs', (t, stderr) => {
 
 testCmdPass('deep', 'node ./test/fixture/deep.cjs', (t, stdout) => {
   t.deepEqual(stdout, ['']);
+});
+
+testCmdPass(
+  'esm-okay',
+  'node --experimental-json-modules ./test/fixture/okay.mjs -h',
+  (t, stdout) => {
+    t.deepEqual(stdout, [
+      'Usage: cheetor <command>',
+      '',
+      'Commands:',
+      '  cheetor sss  describe',
+      '  cheetor lll  describe',
+      '',
+      'Website: https://www.npmjs.com/package/cheetor',
+      'Repository: https://github.com/airkro/cheetor',
+    ]);
+  },
+);
+
+testCmdFail('esm-fail', 'node ./test/fixture/fail.mjs', (t, stderr) => {
+  t.is(stderr[4], `Error: root is required`);
 });
