@@ -1,10 +1,29 @@
-const { createRequire } = require('module');
 const yargs = require('yargs');
 const { green, level } = require('chalk');
 const { fileURLToPath } = require('url');
+const { isAbsolute, resolve } = require('path');
+
+function pure(path) {
+  return path.startsWith('file:') ? fileURLToPath(path) : path;
+}
+
+function resolver(path, root) {
+  const purePath = pure(path);
+  const pureRoot = pure(root);
+
+  let io;
+  if (isAbsolute(purePath)) {
+    io = purePath;
+  } else if (path.startsWith('~')) {
+    io = require.resolve(path.replace(/^~/, ''));
+  } else {
+    io = resolve(pureRoot, purePath);
+  }
+  return io;
+}
 
 function requireFromMain(path, root) {
-  return createRequire(root)(path);
+  return require(resolver(path, root));
 }
 
 function requireFromMainSafe(path, root) {
@@ -43,12 +62,8 @@ function ready() {
   }
 }
 
-const { main = {} } = require || {};
-const { parent = main } = module;
-const { filename: defaultRoot } = parent;
-
 module.exports = class Cheetor {
-  constructor(pkg = './package.json', root = defaultRoot) {
+  constructor(pkg = './package.json', root = `${process.cwd()}/`) {
     if (!root) {
       throw new Error('root is required');
     }
@@ -59,9 +74,9 @@ module.exports = class Cheetor {
       name = 'cheetor',
       repository: { url = '' } = {},
       version,
-    } = typeof pkg === 'string' ? createRequire(root)(pkg) : pkg;
+    } = typeof pkg === 'string' ? requireFromMain(pkg, root) : pkg;
 
-    this.root = new URL(root).protocol === 'file:' ? fileURLToPath(root) : root;
+    this.root = root;
 
     this.repository = url.includes('github.com')
       ? url.replace(/\.git$/, '')
