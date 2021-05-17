@@ -10,16 +10,13 @@ function pure(path) {
 function resolver(path, root) {
   const purePath = pure(path);
   const pureRoot = pure(root);
-
-  let io;
   if (isAbsolute(purePath)) {
-    io = purePath;
-  } else if (path.startsWith('~')) {
-    io = require.resolve(path.replace(/^~/, ''));
-  } else {
-    io = resolve(pureRoot, purePath);
+    return purePath;
   }
-  return io;
+  if (path.startsWith('~')) {
+    return require.resolve(path.replace(/^~/, ''));
+  }
+  return resolve(pureRoot, purePath);
 }
 
 function requireFromMain(path, root) {

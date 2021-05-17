@@ -50,7 +50,7 @@ function testCmdFail(name, command, checker) {
 }
 
 testCmdPass('base', 'node ./test/fixture/base.cjs', (t, stdout) => {
-  t.deepEqual(stdout, ['']);
+  t.deepEqual([''], stdout);
 });
 
 testCmdPass('help', 'node ./test/fixture/base.cjs -h', (t, stdout) => {
@@ -63,7 +63,7 @@ testCmdPass('help', 'node ./test/fixture/base.cjs -h', (t, stdout) => {
 });
 
 testCmdPass('success', 'node ./test/fixture/okay.cjs', (t, stdout) => {
-  t.deepEqual(stdout, ['']);
+  t.deepEqual([''], stdout);
 });
 
 testCmdFail('fail', 'node ./test/fixture/fail.cjs', (t, stderr) => {
@@ -71,5 +71,5 @@ testCmdFail('fail', 'node ./test/fixture/fail.cjs', (t, stderr) => {
 });
 
 testCmdPass('deep', 'node ./test/fixture/deep.cjs', (t, stdout) => {
-  t.deepEqual(stdout, ['']);
+  t.deepEqual([''], stdout);
 });
