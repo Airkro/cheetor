@@ -8,15 +8,21 @@ function pure(path) {
 }
 
 function resolver(path, root) {
+  if (!root || root === '.') {
+    throw new Error('root is required');
+  }
+  if (!path || path === '.') {
+    throw new Error('path is required');
+  }
   const purePath = pure(path);
   const pureRoot = pure(root);
   if (isAbsolute(purePath)) {
     return purePath;
   }
-  if (path.startsWith('~')) {
-    return require.resolve(path.replace(/^~/, ''));
+  if (path.startsWith('.')) {
+    return resolve(pureRoot, purePath);
   }
-  return resolve(pureRoot, purePath);
+  return require.resolve(path.replace(/^~/, ''));
 }
 
 function requireFromMain(path, root) {
@@ -61,10 +67,6 @@ function ready() {
 
 module.exports = class Cheetor {
   constructor(pkg = './package.json', root) {
-    if (!root) {
-      throw new Error('root is required');
-    }
-
     const {
       bin,
       homepage,
