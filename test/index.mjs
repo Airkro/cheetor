@@ -1,14 +1,14 @@
-const test = require('ava');
+import test from 'ava';
 
-const { Run, pkg } = require('./helper/util.cjs');
+import { pkg, Run } from './helper/util.cjs';
 
 test('base', async (t) => {
-  const stdout = await Run('./test/fixture/base.cjs');
+  const stdout = await Run('./test/fixture/base.mjs');
   t.deepEqual(stdout, ['']);
 });
 
 test('help', async (t) => {
-  const stdout = await Run('./test/fixture/base.cjs', '-h');
+  const stdout = await Run('./test/fixture/base.mjs', '-h');
   t.deepEqual(stdout, [
     `Usage: ${pkg.name}`,
     '',
@@ -18,17 +18,17 @@ test('help', async (t) => {
 });
 
 test('deep', async (t) => {
-  const stdout = await Run('./test/fixture/deep.cjs');
+  const stdout = await Run('./test/fixture/deep.mjs');
   t.deepEqual(stdout, ['']);
 });
 
 test('okay', async (t) => {
-  const stdout = await Run('./test/fixture/okay.cjs');
+  const stdout = await Run('./test/fixture/okay.mjs');
   t.deepEqual(stdout, ['']);
 });
 
 test('fail', async (t) => {
-  await Run('./test/fixture/fail.cjs')
+  await Run('./test/fixture/fail.mjs')
     .then(() => {
       t.fail('should fail');
     })

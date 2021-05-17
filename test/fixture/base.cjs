@@ -1,3 +1,3 @@
-const Cheetor = require('../../index.cjs');
+const { Cheetor } = require('../../index.cjs');
 
-new Cheetor('../../package.json', __dirname).setup();
+new Cheetor('../../../package.json', __filename).setup();

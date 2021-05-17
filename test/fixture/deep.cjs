@@ -1,1 +1,1 @@
-require('./deep/test.cjs');
+require('./deep/entry.cjs');

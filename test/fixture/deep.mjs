@@ -1,0 +1,1 @@
+import './deep/entry.cjs';

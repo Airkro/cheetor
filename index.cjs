@@ -65,7 +65,7 @@ function ready() {
   }
 }
 
-module.exports = class Cheetor {
+class Cheetor {
   constructor(pkg = './package.json', root) {
     const {
       bin,
@@ -167,4 +167,6 @@ module.exports = class Cheetor {
       this.cli.argv;
     }
   }
-};
+}
+
+module.exports = { Cheetor };
