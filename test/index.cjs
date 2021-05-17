@@ -67,30 +67,9 @@ testCmdPass('success', 'node ./test/fixture/okay.cjs', (t, stdout) => {
 });
 
 testCmdFail('fail', 'node ./test/fixture/fail.cjs', (t, stderr) => {
-  t.is(stderr[4], 'Error: 456');
+  t.is('Error: 456', stderr[4]);
 });
 
 testCmdPass('deep', 'node ./test/fixture/deep.cjs', (t, stdout) => {
   t.deepEqual(stdout, ['']);
-});
-
-testCmdPass(
-  'esm-okay',
-  'node --experimental-json-modules ./test/fixture/okay.mjs -h',
-  (t, stdout) => {
-    t.deepEqual(stdout, [
-      'Usage: cheetor <command>',
-      '',
-      'Commands:',
-      '  cheetor sss  describe',
-      '  cheetor lll  describe',
-      '',
-      'Website: https://www.npmjs.com/package/cheetor',
-      'Repository: https://github.com/airkro/cheetor',
-    ]);
-  },
-);
-
-testCmdFail('esm-fail', 'node ./test/fixture/fail.mjs', (t, stderr) => {
-  t.is(stderr[4], 'Error: root is required');
 });

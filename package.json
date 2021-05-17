@@ -27,7 +27,7 @@
     "lint": "nice-move lint",
     "prepare": "git config core.hooksPath .hooks",
     "prepublishOnly": "nice-move lint && ava --fail-fast",
-    "test": "ava --verbose"
+    "test": "ava --verbose --fail-fast"
   },
   "dependencies": {
     "chalk": "^4.1.1",

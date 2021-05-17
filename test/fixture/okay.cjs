@@ -1,3 +1,3 @@
 const Cheetor = require('../../index.cjs');
 
-new Cheetor('../../package.json').commandSafe('qss').setup();
+new Cheetor('../../package.json', __dirname).commandSafe('~qss').setup();

@@ -33,7 +33,7 @@ function requireFromMainSafe(path, root) {
     if (
       error.code === 'MODULE_NOT_FOUND' &&
       error.requireStack &&
-      error.requireStack[0] === root
+      error.requireStack[0] === __filename
     ) {
       // eslint-disable-next-line consistent-return
       return;
@@ -63,7 +63,7 @@ function ready() {
 }
 
 module.exports = class Cheetor {
-  constructor(pkg = './package.json', root = `${process.cwd()}/`) {
+  constructor(pkg = './package.json', root) {
     if (!root) {
       throw new Error('root is required');
     }
