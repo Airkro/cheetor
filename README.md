@@ -22,14 +22,14 @@ npm install cheetor --save
 
 ```mjs
 // esmodules
-import Cheetor from 'cheetor';
+import { Cheetor } from 'cheetor';
 
 new Cheetor('../package.json', import.meta.url).setup();
 ```
 
 ```cjs
 // commonjs
-const Cheetor = require('cheetor');
+const { Cheetor } = require('cheetor');
 
 new Cheetor('./package.json', __dirname).setup();
 new Cheetor('../package.json', __filename).setup();
