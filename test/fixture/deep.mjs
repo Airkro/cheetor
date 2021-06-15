@@ -1,1 +1,1 @@
-import './deep/entry.cjs';
+import './deep/entry.mjs';

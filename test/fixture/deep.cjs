@@ -1,1 +1,0 @@
-require('./deep/entry.cjs');

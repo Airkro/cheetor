@@ -1,6 +1,9 @@
 import test from 'ava';
+import { createRequire } from 'module';
 
-import { pkg, Run } from './helper/util.cjs';
+import { Run } from './helper/util.mjs';
+
+const pkg = createRequire(import.meta.url)('../package.json');
 
 test('base', async (t) => {
   const stdout = await Run('./test/fixture/base.mjs');
@@ -23,8 +26,21 @@ test('deep', async (t) => {
 });
 
 test('okay', async (t) => {
-  const stdout = await Run('./test/fixture/okay.mjs');
-  t.deepEqual(stdout, ['']);
+  const stdout = await Run('./test/fixture/okay.mjs', '-h');
+  t.deepEqual(
+    [
+      `Usage: ${pkg.name} <command>`,
+      '',
+      'Commands:',
+      '  cheetor static  command static',
+      '  cheetor test    command test',
+      '  cheetor smart   command smart',
+      '',
+      `Website: ${pkg.homepage}`,
+      `Repository: ${pkg.repository.url.replace(/\.git$/, '')}`,
+    ],
+    stdout,
+  );
 });
 
 test('fail', async (t) => {
@@ -33,6 +49,6 @@ test('fail', async (t) => {
       t.fail('should fail');
     })
     .catch((error) => {
-      t.is(error.info[5], 'Error: 456');
+      t.deepEqual(error.info, ['789', '456']);
     });
 });
