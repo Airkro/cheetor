@@ -1,48 +1,10 @@
 /* eslint-disable promise/no-nesting */
 import chalk from 'chalk';
-import { createRequire } from 'module';
-import { resolve } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
 import yargs from 'yargs';
 
+import { importFrom, importFromSafe, requireJson } from './lib.mjs';
+
 const { green, level } = chalk;
-
-function pure(path) {
-  return path.startsWith('file:') ? fileURLToPath(path) : path;
-}
-
-const require = createRequire(import.meta.url);
-
-function resolver(path, root) {
-  if (!root || root === '.') {
-    throw new Error('root is required');
-  }
-  if (!path || path === '.') {
-    throw new Error('path is required');
-  }
-  const purePath = pure(path);
-  const pureRoot = pure(root);
-  if (path.startsWith('.')) {
-    return pathToFileURL(resolve(pureRoot, purePath)).toString();
-  }
-  return path;
-}
-
-function importFromMain(path, root) {
-  return import(resolver(path, root));
-}
-
-function importFromMainSafe(path, root) {
-  return importFromMain(path, root).catch((error) => {
-    if (
-      error.code === 'ERR_MODULE_NOT_FOUND' &&
-      error.message.endsWith(` imported from ${fileURLToPath(import.meta.url)}`)
-    ) {
-      return false;
-    }
-    throw error;
-  });
-}
 
 function ready(cli, that) {
   const { hasCommand, homepage, site = homepage, repository } = that;
@@ -76,9 +38,7 @@ export class Cheetor {
       name = 'cheetor',
       repository: { url = '' } = {},
       version,
-    } = typeof pkg === 'string'
-      ? require(fileURLToPath(resolver(pkg, root)))
-      : pkg;
+    } = typeof pkg === 'string' ? requireJson(pkg, root) : pkg;
 
     this.homepage = homepage;
     this.repository = url.includes('github.com')
@@ -122,7 +82,7 @@ export class Cheetor {
 
   commandFrom(path) {
     this.cli = this.cli.then(async (cli) => {
-      const io = await importFromMain(path, this.root);
+      const io = await importFrom(path, this.root);
       this.hasCommand = true;
       return cli.command(io);
     });
@@ -131,7 +91,7 @@ export class Cheetor {
 
   commandSafe(path) {
     this.cli = this.cli.then((cli) =>
-      importFromMainSafe(path, this.root).then((mod) => {
+      importFromSafe(path, this.root).then((mod) => {
         if (mod && mod.command) {
           this.hasCommand = true;
           return cli.command(mod);

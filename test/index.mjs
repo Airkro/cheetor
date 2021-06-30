@@ -49,6 +49,6 @@ test('fail', async (t) => {
       t.fail('should fail');
     })
     .catch((error) => {
-      t.deepEqual(error.info, ['789', '456']);
+      t.deepEqual(error.info, ['789', '456', '456']);
     });
 });
