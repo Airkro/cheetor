@@ -11,10 +11,12 @@ function ready(cli, that) {
 
   const hasWebsite = site && site !== repository;
 
-  if (hasCommand) {
-    cli.usage(`Usage: ${green('$0')} <command>`);
-  } else {
-    cli.usage(`Usage: ${green('$0')}`);
+  if (cli.getInternalMethods().getUsageInstance().getUsage().length === 0) {
+    if (hasCommand) {
+      cli.usage(`Usage: ${green('$0')} <command>`);
+    } else {
+      cli.usage(`Usage: ${green('$0')}`);
+    }
   }
 
   if (hasWebsite) {
