@@ -130,12 +130,15 @@ export class Cheetor {
     return this;
   }
 
-  setup() {
+  setup(action) {
     return this.cli
       .then((cli) => ready(cli, this))
       .then((cli) => {
         if (this.hasCommand) {
           cli.demandCommand(1, "Won't work without a command");
+        }
+        if (typeof action === 'function') {
+          return action(cli.parse());
         }
         return cli.parse();
       });
