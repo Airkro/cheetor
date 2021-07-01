@@ -21,7 +21,6 @@ npm install cheetor --save
 ## Usage
 
 ```mjs
-// esmodules
 import { Cheetor } from 'cheetor';
 
 new Cheetor('../package.json', import.meta.url).setup();

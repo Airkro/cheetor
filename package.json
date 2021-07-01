@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -9,6 +9,7 @@
   },
   "keywords": [
     "builder",
+    "cheetor",
     "cli",
     "helper",
     "utils",
@@ -22,10 +23,10 @@
   "bugs": {
     "url": "https://github.com/airkro/cheetor/issues"
   },
-  "main": "./index.mjs",
+  "main": "index.mjs",
   "exports": "./index.mjs",
   "files": [
-    "./lib.mjs"
+    "lib.mjs"
   ],
   "scripts": {
     "lint": "nice-move lint",
@@ -50,7 +51,7 @@
     "prettier": "^2.3.2"
   },
   "engines": {
-    "node": "^12.20.0 || ^14.15.3"
+    "node": "^12.22.0 || ^14.17.0"
   },
   "publishConfig": {
     "access": "public",
