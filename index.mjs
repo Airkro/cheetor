@@ -1,22 +1,31 @@
 /* eslint-disable promise/no-nesting */
-import chalk from 'chalk';
 import yargs from 'yargs';
 
 import { importFrom, importFromSafe, requireJson } from './lib.mjs';
 
-const { green, level } = chalk;
+function has(object) {
+  return Object.keys(object).some((item) => item && item !== '$0');
+}
 
 function ready(cli, that) {
-  const { hasCommand, homepage, site = homepage, repository } = that;
+  const { homepage, site = homepage, repository } = that;
 
   const hasWebsite = site && site !== repository;
 
-  if (cli.getInternalMethods().getUsageInstance().getUsage().length === 0) {
+  const instance = cli.getInternalMethods();
+
+  const hasCommand = has(instance.getCommandInstance().handlers);
+
+  if (instance.getUsageInstance().getUsage().length === 0) {
     if (hasCommand) {
-      cli.usage(`Usage: ${green('$0')} <command>`);
+      cli.usage('Usage: $0 <command>');
     } else {
-      cli.usage(`Usage: ${green('$0')}`);
+      cli.usage('Usage: $0');
     }
+  }
+
+  if (hasCommand) {
+    cli.demandCommand(1, "Won't work without a command");
   }
 
   if (hasWebsite) {
@@ -28,6 +37,17 @@ function ready(cli, that) {
   }
 
   return cli;
+}
+
+function parseBin(bin, name) {
+  if (typeof bin === 'string' || !bin) {
+    return name;
+  }
+  const bins = Object.keys(bin);
+  if (bins.length === 1) {
+    return bins[0];
+  }
+  return false;
 }
 
 export class Cheetor {
@@ -46,27 +66,23 @@ export class Cheetor {
     this.repository = url.includes('github.com')
       ? url.replace(/\.git$/, '')
       : '';
-    this.scriptName = ['string', 'undefined'].includes(typeof bin)
-      ? name
-      : Object.keys(bin)[0];
 
-    this.cli = Promise.resolve(
-      yargs(process.argv.slice(2))
-        .strict()
-        .alias('help', 'h')
-        .alias('version', 'v')
-        .hide('help')
-        .version(version)
-        .hide('version')
-        .detectLocale(false)
-        .scriptName(this.scriptName)
-        .option('color', {
-          coerce: () => level > 0,
-          describe: 'Colorful output',
-          type: 'boolean',
-          hidden: true,
-        }),
-    );
+    const cli = yargs(process.argv.slice(2))
+      .strict()
+      .alias('help', 'h')
+      .alias('version', 'v')
+      .hide('help')
+      .version(version)
+      .hide('version')
+      .detectLocale(false);
+
+    const $0 = parseBin(bin, name);
+
+    if ($0) {
+      cli.scriptName($0);
+    }
+
+    this.cli = Promise.resolve(cli);
   }
 
   config(func) {
@@ -75,17 +91,13 @@ export class Cheetor {
   }
 
   command(...args) {
-    this.cli = this.cli.then((cli) => {
-      this.hasCommand = true;
-      return cli.command(...args);
-    });
+    this.cli = this.cli.then((cli) => cli.command(...args));
     return this;
   }
 
   commandFrom(path) {
     this.cli = this.cli.then(async (cli) => {
       const io = await importFrom(path, this.root);
-      this.hasCommand = true;
       return cli.command(io);
     });
     return this;
@@ -95,7 +107,6 @@ export class Cheetor {
     this.cli = this.cli.then((cli) =>
       importFromSafe(path, this.root).then((mod) => {
         if (mod && mod.command) {
-          this.hasCommand = true;
           return cli.command(mod);
         }
         return cli;
@@ -108,7 +119,6 @@ export class Cheetor {
     this.cli = this.cli.then(async (cli) => {
       const mod = func();
       if (mod && mod.command) {
-        this.hasCommand = true;
         return cli.command(mod);
       }
       return cli;
@@ -121,12 +131,6 @@ export class Cheetor {
     return this;
   }
 
-  effect(action) {
-    const { scriptName } = this;
-    action({ scriptName });
-    return this;
-  }
-
   middleware(...args) {
     this.cli = this.cli.then((cli) => cli.middleware(...args));
     return this;
@@ -136,9 +140,6 @@ export class Cheetor {
     return this.cli
       .then((cli) => ready(cli, this))
       .then((cli) => {
-        if (this.hasCommand) {
-          cli.demandCommand(1, "Won't work without a command");
-        }
         if (typeof action === 'function') {
           return action(cli.parse());
         }
