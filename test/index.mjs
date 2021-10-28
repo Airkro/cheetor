@@ -1,5 +1,7 @@
-import test from 'ava';
 import { createRequire } from 'module';
+
+// eslint-disable-next-line import/no-unresolved
+import test from 'ava';
 
 import { Run } from './helper/util.mjs';
 
