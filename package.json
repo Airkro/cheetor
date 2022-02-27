@@ -38,15 +38,15 @@
     "yargs": "^17.3.1"
   },
   "devDependencies": {
-    "@nice-move/cli": "^0.6.0",
+    "@nice-move/cli": "^0.7.0",
     "@nice-move/commitlint-config": "^0.5.0",
-    "@nice-move/eslint-config-base": "^0.6.0",
-    "@nice-move/prettier-config": "^0.5.1",
+    "@nice-move/eslint-config-base": "^0.6.1",
+    "@nice-move/prettier-config": "^0.5.2",
     "ava": "^4.0.1",
     "commitlint": "^13.2.1",
     "eslint": "^7.32.0",
     "eslint-plugin-ava": "^13.2.0",
-    "garou": "^0.3.8",
+    "garou": "^0.4.0",
     "prettier": "^2.5.1"
   },
   "engines": {
