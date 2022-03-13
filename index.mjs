@@ -1,7 +1,7 @@
 /* eslint-disable promise/no-nesting */
 import yargs from 'yargs';
 
-import { importFrom, importFromSafe, requireJson } from './lib.mjs';
+import { importFrom, importFromSafe, requireJson } from './lib.cjs';
 
 function has(object) {
   return Object.keys(object).some((item) => item && item !== '$0');
@@ -43,10 +43,13 @@ function parseBin(bin, name) {
   if (typeof bin === 'string' || !bin) {
     return name;
   }
+
   const bins = Object.keys(bin);
+
   if (bins.length === 1) {
     return bins[0];
   }
+
   return false;
 }
 
@@ -87,19 +90,23 @@ export class Cheetor {
 
   config(func) {
     this.cli = this.cli.then(func);
+
     return this;
   }
 
   command(...args) {
     this.cli = this.cli.then((cli) => cli.command(...args));
+
     return this;
   }
 
   commandFrom(path) {
     this.cli = this.cli.then(async (cli) => {
       const io = await importFrom(path, this.root);
+
       return cli.command(io);
     });
+
     return this;
   }
 
@@ -109,30 +116,37 @@ export class Cheetor {
         if (mod && mod.command) {
           return cli.command(mod);
         }
+
         return cli;
       }),
     );
+
     return this;
   }
 
   commandSmart(func) {
     this.cli = this.cli.then(async (cli) => {
       const mod = func();
+
       if (mod && mod.command) {
         return cli.command(mod);
       }
+
       return cli;
     });
+
     return this;
   }
 
   website(site) {
     this.site = site;
+
     return this;
   }
 
   middleware(...args) {
     this.cli = this.cli.then((cli) => cli.middleware(...args));
+
     return this;
   }
 
@@ -143,6 +157,7 @@ export class Cheetor {
         if (typeof action === 'function') {
           return action(cli.parse());
         }
+
         return cli.parse();
       });
   }

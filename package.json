@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.12.2",
+  "version": "0.12.5",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -26,12 +26,12 @@
   "main": "index.mjs",
   "exports": "./index.mjs",
   "files": [
-    "lib.mjs"
+    "lib.cjs"
   ],
   "scripts": {
-    "lint": "nice-move lint",
-    "prepare": "git config core.hooksPath .hooks",
-    "prepublishOnly": "npm run lint && npm test",
+    "lint:staged": "nice-move lint staged",
+    "prepare": "git config core.hooksPath .githooks",
+    "prepublishOnly": "npm run lint:staged && npm test",
     "test": "ava --fail-fast"
   },
   "dependencies": {
@@ -39,14 +39,12 @@
   },
   "devDependencies": {
     "@nice-move/cli": "^0.7.0",
-    "@nice-move/commitlint-config": "^0.5.0",
-    "@nice-move/eslint-config-base": "^0.6.1",
+    "@nice-move/eslint-config-base": "^0.6.2",
     "@nice-move/prettier-config": "^0.5.2",
-    "ava": "^4.0.1",
-    "commitlint": "^13.2.1",
-    "eslint": "^7.32.0",
+    "ava": "^4.1.0",
+    "eslint": "^8.11.0",
     "eslint-plugin-ava": "^13.2.0",
-    "garou": "^0.4.0",
+    "garou": "0.4.0",
     "prettier": "^2.5.1"
   },
   "engines": {
@@ -55,9 +53,6 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  },
-  "commitlint": {
-    "extends": "@nice-move/commitlint-config"
   },
   "eslintConfig": {
     "extends": "@nice-move/eslint-config-base"
