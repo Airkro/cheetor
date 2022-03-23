@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.12.5",
+  "version": "0.12.6",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -35,17 +35,17 @@
     "test": "ava --fail-fast"
   },
   "dependencies": {
-    "yargs": "^17.3.1"
+    "yargs": "^17.4.0"
   },
   "devDependencies": {
-    "@nice-move/cli": "^0.7.0",
-    "@nice-move/eslint-config-base": "^0.6.2",
-    "@nice-move/prettier-config": "^0.5.2",
+    "@nice-move/cli": "^0.7.1",
+    "@nice-move/eslint-config-base": "^0.6.4",
+    "@nice-move/prettier-config": "^0.5.3",
     "ava": "^4.1.0",
     "eslint": "^8.11.0",
     "eslint-plugin-ava": "^13.2.0",
-    "garou": "0.4.0",
-    "prettier": "^2.5.1"
+    "garou": "0.4.4",
+    "prettier": "^2.6.0"
   },
   "engines": {
     "node": "^12.22.0 || ^14.17.0 || >=16.13.0"

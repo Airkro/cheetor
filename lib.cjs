@@ -10,7 +10,7 @@ exports.requireJson = function requireJson(path, root) {
 function importFrom(path, root) {
   const io = path.startsWith('.') ? join(root, path) : path;
 
-  return import(io);
+  return import(/* webpackIgnore: true */ io);
 }
 
 exports.importFrom = importFrom;
