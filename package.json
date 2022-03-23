@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.12.6",
+  "version": "0.13.0",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -26,7 +26,7 @@
   "main": "index.mjs",
   "exports": "./index.mjs",
   "files": [
-    "lib.cjs"
+    "lib.mjs"
   ],
   "scripts": {
     "lint:staged": "nice-move lint staged",
@@ -48,7 +48,7 @@
     "prettier": "^2.6.0"
   },
   "engines": {
-    "node": "^12.22.0 || ^14.17.0 || >=16.13.0"
+    "node": "^14.17.0 || >=16.13.0"
   },
   "publishConfig": {
     "access": "public",

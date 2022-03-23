@@ -1,7 +1,9 @@
 /* eslint-disable promise/no-nesting */
+import { readFileSync } from 'fs';
+
 import yargs from 'yargs';
 
-import { importFrom, importFromSafe, requireJson } from './lib.cjs';
+import { importFrom, importFromSafe } from './lib.mjs';
 
 function has(object) {
   return Object.keys(object).some((item) => item && item !== '$0');
@@ -63,7 +65,9 @@ export class Cheetor {
       name = 'cheetor',
       repository: { url = '' } = {},
       version,
-    } = typeof pkg === 'string' ? requireJson(pkg, root) : pkg;
+    } = typeof pkg === 'string'
+      ? JSON.parse(readFileSync(new URL(pkg, root)))
+      : pkg;
 
     this.homepage = homepage;
     this.repository = url.includes('github.com')
