@@ -35,7 +35,7 @@
     "test": "ava --fail-fast"
   },
   "dependencies": {
-    "yargs": "^17.5.1"
+    "yargs": "^17.6.0"
   },
   "devDependencies": {
     "@nice-move/cli": "^0.9.6",
