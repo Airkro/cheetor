@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@nice-move/cli": "^0.9.10",
-    "@nice-move/eslint-config-base": "^0.8.14",
+    "@nice-move/eslint-config-base": "^0.8.15",
     "@nice-move/prettier-config": "^0.7.3",
     "ava": "^4.3.3",
     "eslint": "^8.25.0",
