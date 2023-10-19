@@ -1,5 +1,5 @@
-/* eslint-disable promise/no-nesting */
-import { readFileSync } from 'fs';
+ 
+import { readFileSync } from 'node:fs';
 
 import yargs from 'yargs';
 

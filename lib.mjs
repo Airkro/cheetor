@@ -1,5 +1,5 @@
-import { join } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export function importFrom(path, root) {
   const io = path.startsWith('.') ? join(root, path) : path;
