@@ -40,7 +40,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@bring-it/npm": "^0.3.6",
+    "@bring-it/npm": "^0.4.1",
     "@nice-move/cli": "^0.10.13",
     "@nice-move/eslint-config-base": "^0.9.22",
     "@nice-move/prettier-config": "^0.9.7",
