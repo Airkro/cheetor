@@ -14,19 +14,19 @@ devDependencies:
     specifier: ^0.4.1
     version: 0.4.2(@bring-it/cli@0.8.1)
   '@nice-move/cli':
-    specifier: ^0.10.13
-    version: 0.10.14
+    specifier: ^0.11.1
+    version: 0.11.3
   '@nice-move/eslint-config-base':
-    specifier: ^0.9.22
-    version: 0.9.26(eslint@8.56.0)(typescript@5.3.3)
+    specifier: ^0.10.0
+    version: 0.10.0(eslint@8.56.0)(typescript@5.3.3)
   '@nice-move/prettier-config':
-    specifier: ^0.9.7
-    version: 0.9.9(prettier@3.1.1)
+    specifier: ^0.10.0
+    version: 0.10.0(prettier@3.1.1)
   ava:
     specifier: ^5.3.1
     version: 5.3.1
   eslint:
-    specifier: ^8.51.0
+    specifier: ^8.56.0
     version: 8.56.0
   eslint-plugin-ava:
     specifier: ^14.0.0
@@ -35,7 +35,7 @@ devDependencies:
     specifier: ^0.6.17
     version: 0.6.22(eslint@8.56.0)(typescript@5.3.3)
   prettier:
-    specifier: ^3.0.3
+    specifier: ^3.1.1
     version: 3.1.1
 
 packages:
@@ -378,18 +378,17 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
-  /@nice-move/cli@0.10.14:
-    resolution: {integrity: sha512-Mp67t0H1G8Nt55nAz87js+8K0taVpsCoxWO1Xx77pWsFuSGaWf8n8LsJchlgfNeMwcdZg3QazbsT/jee8+Owtw==}
-    engines: {node: ^16.17.0 || ^18.12.0 || ^20.0.0}
+  /@nice-move/cli@0.11.3:
+    resolution: {integrity: sha512-tPZidKHfkL8v4q/Sf103ynVaUEiUpco0gvsE2a5Hh7HtXZoxdgRVKXZURObGM8pYP6Dbn3iAOsuD4+dYgrV47Q==}
+    engines: {node: ^18.12.0 || ^20.0.0}
     hasBin: true
     dependencies:
       eslint-formatter-pretty: 5.0.0
-      stylelint-formatter-pretty: 3.2.1
     dev: true
 
-  /@nice-move/eslint-config-base@0.9.26(eslint@8.56.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-NJGVxQT16dA7kpV7RH2X6xq7lKJhWHzqu0XRLnt1e3BDmBQBTTdO8MxusFoK3nLIREks3/XBAbMZ7GqbSsCEug==}
-    engines: {node: ^16.17.0 || ^18.12.0 || ^20.0.0}
+  /@nice-move/eslint-config-base@0.10.0(eslint@8.56.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-k5iunQ0nXH12pxee6PBJXT4WmuvcaZg2CqbiiMpyooUKsF6IbU8CJfvXWNTSSOHj4D8hlORXvk0InKnLc/o0DA==}
+    engines: {node: ^18.12.0 || ^20.0.0}
     peerDependencies:
       eslint: ^8.56.0
     dependencies:
@@ -429,9 +428,9 @@ packages:
       node-html-parser: 6.1.11
     dev: true
 
-  /@nice-move/prettier-config@0.9.9(prettier@3.1.1):
-    resolution: {integrity: sha512-VNhOxZ2YjQZosUNtlymh2xqUyeZhwUrOe4w8hQHavK4r3c0J4iV4TkZLbUEc+WYdKVYwl63U1xNFThSeHQomyA==}
-    engines: {node: ^16.17.0 || ^18.12.0 || ^20.0.0}
+  /@nice-move/prettier-config@0.10.0(prettier@3.1.1):
+    resolution: {integrity: sha512-OryOhMeTf2mo8ASRXGz1cUza0spBHaceAq/cdeqY2+3tGzLzUh9IaeXSKwbjZPnSfsAwIgyErzQTUzSFBc8fag==}
+    engines: {node: ^18.12.0 || ^20.0.0}
     peerDependencies:
       prettier: ^2.8.8 || ^3.0.3
     dependencies:
@@ -3262,18 +3261,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /stylelint-formatter-pretty@3.2.1:
-    resolution: {integrity: sha512-fYL7iKejFK7YxTXtWmlIauuhgCPxRbLleTm6GuKKRHzEVaNt6mqchoWdHn3IzIZngFN8GEqh4Z5HpfbyBTTCBQ==}
-    engines: {node: '>=14'}
-    dependencies:
-      ansi-escapes: 4.3.2
-      log-symbols: 4.1.0
-      picocolors: 1.0.0
-      plur: 4.0.0
-      string-width: 4.2.3
-      supports-hyperlinks: 3.0.0
-    dev: true
-
   /supertap@3.0.1:
     resolution: {integrity: sha512-u1ZpIBCawJnO+0QePsEiOknOfCRq0yERxiAchT0i4li0WHNUJbf0evXXSXOcCAR4M8iMDoajXYmstm/qO81Isw==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -3301,14 +3288,6 @@ packages:
   /supports-hyperlinks@2.3.0:
     resolution: {integrity: sha512-RpsAZlpWcDwOPQA22aCH4J0t7L8JmAvsCxfOSEwm7cQs3LshN36QaTkwd70DnBOXDWGssw2eUoc8CaRWT0XunA==}
     engines: {node: '>=8'}
-    dependencies:
-      has-flag: 4.0.0
-      supports-color: 7.2.0
-    dev: true
-
-  /supports-hyperlinks@3.0.0:
-    resolution: {integrity: sha512-QBDPHyPQDRTy9ku4URNGY5Lah8PAaXs6tAAwp55sL5WCsSW7GIfdf6W5ixfziW+t7wh3GVvHyHHyQ1ESsoRvaA==}
-    engines: {node: '>=14.18'}
     dependencies:
       has-flag: 4.0.0
       supports-color: 7.2.0
