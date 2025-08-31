@@ -11,8 +11,8 @@ dependencies:
 
 devDependencies:
   '@bring-it/npm':
-    specifier: ^0.4.1
-    version: 0.4.2(@bring-it/cli@0.8.1)
+    specifier: ^0.8.3
+    version: 0.8.3(@bring-it/cli@0.10.0)
   '@nice-move/cli':
     specifier: ^0.11.1
     version: 0.11.26
@@ -228,22 +228,23 @@ packages:
       '@babel/helper-validator-identifier': 7.27.1
     dev: true
 
-  /@bring-it/cli@0.8.1:
-    resolution: {integrity: sha512-BxNFv5vlfqa/8Iwn+TT9STbKTeIvPAAEP6WNdhbZcFa32n/ss90hZ0gZGLSEau/xDHtwlfIsB/AAjoUwglJWUQ==}
-    engines: {node: ^18.0.0 || ^20.0.0, npm: '>=9.0.0'}
+  /@bring-it/cli@0.10.0:
+    resolution: {integrity: sha512-dYQRXLJ1fmH66rpeEjX9zDFcMqTiAshPkR7xHJQHoOXdQQWpbiV/MyDGJw2PhTCPuxLHaxh1MCZfctmq7M7nDw==}
+    engines: {node: '>=22.11.0 || ^20.18.1'}
     hasBin: true
     dependencies:
       globby: 14.1.0
       yargs: 17.7.2
     dev: true
 
-  /@bring-it/npm@0.4.2(@bring-it/cli@0.8.1):
-    resolution: {integrity: sha512-Kt3u24sRQn/JxXiwpTIEw8Lp3ko8d5mivz11P1eUtgUFQX2Sbvis86sVYH3BqJH5Xv204FgLjQNMoCOvjU1qBA==}
-    engines: {node: ^18.0.0 || ^20.0.0, npm: '>=9.0.0'}
+  /@bring-it/npm@0.8.3(@bring-it/cli@0.10.0):
+    resolution: {integrity: sha512-cDeRRM8Z/S0vxNkc5/4TgECwdUbjh3Bf0Pan/IWEoWBfkO8UCs1rlXH8IWhE+2HFa4sS8ujTAtT6BuUQhQ95sw==}
+    engines: {node: '>=22.11.0 || ^20.18.1', npm: ^10.5.0, pnpm: ^10.13.1}
+    hasBin: true
     peerDependencies:
-      '@bring-it/cli': ^0.8.0
+      '@bring-it/cli': ^0.10.0
     dependencies:
-      '@bring-it/cli': 0.8.1
+      '@bring-it/cli': 0.10.0
     dev: true
 
   /@eslint-community/eslint-utils@4.7.0(eslint@8.57.1):
