@@ -2,20 +2,36 @@ import { readFileSync } from 'node:fs';
 
 import yargs from 'yargs';
 
-import { importFrom, importFromSafe } from './lib.mjs';
+import { importFrom, importFromSafe } from './lib.mts';
 
-function has(object) {
+type Bin = string | Record<string, string> | undefined;
+
+type Module = {
+  command?: unknown;
+};
+
+type Cli = any;
+
+type Pkg = {
+  bin?: Bin;
+  homepage?: string;
+  name?: string;
+  repository?: string | { url?: string };
+  version?: string;
+};
+
+function hasKeys(object: Record<string, unknown>): boolean {
   return Object.keys(object).some((item) => item && item !== '$0');
 }
 
-function ready(cli, that) {
+function ready(cli: Cli, that: Cheetor): Cli {
   const { homepage, site = homepage, repository } = that;
 
-  const hasWebsite = site && site !== repository;
+  const hasWebsite = Boolean(site && site !== repository);
 
   const instance = cli.getInternalMethods();
 
-  const hasCommand = has(instance.getCommandInstance().handlers);
+  const hasCommand = hasKeys(instance.getCommandInstance().handlers);
 
   if (instance.getUsageInstance().getUsage().length === 0) {
     if (hasCommand) {
@@ -42,7 +58,7 @@ function ready(cli, that) {
   return cli;
 }
 
-function parseBin(bin, name) {
+function parseBin(bin: Bin, name: string): string | false {
   if (typeof bin === 'string' || !bin) {
     return name;
   }
@@ -50,27 +66,41 @@ function parseBin(bin, name) {
   const bins = Object.keys(bin);
 
   if (bins.length === 1) {
-    return bins[0];
+    return bins[0] as string;
   }
 
   return false;
 }
 
 export class Cheetor {
-  site;
+  private cli: Promise<Cli>;
 
-  constructor(pkg, root) {
+  homepage: string | undefined;
+
+  repository: string;
+
+  root: string | URL;
+
+  site: string | undefined;
+
+  constructor(pkg: string | Pkg, root: string | URL = import.meta.url) {
     this.root = root;
+
+    const data =
+      typeof pkg === 'string'
+        ? (JSON.parse(readFileSync(new URL(pkg, root)).toString()) as Pkg)
+        : pkg;
 
     const {
       bin,
       homepage,
       name = 'cheetor',
-      repository: { url = '' } = {},
       version,
-    } = typeof pkg === 'string'
-      ? JSON.parse(readFileSync(new URL(pkg, root)))
-      : pkg;
+    } = data;
+    const { url = '' } =
+      data.repository && typeof data.repository === 'object'
+        ? data.repository
+        : {};
 
     this.homepage = homepage;
     this.repository = url.includes('github.com')
@@ -95,21 +125,21 @@ export class Cheetor {
     this.cli = Promise.resolve(cli);
   }
 
-  config(func) {
+  config(func: (cli: Cli) => Cli): this {
     this.cli = this.cli.then(func);
 
     return this;
   }
 
-  command(...args) {
+  command(...args: unknown[]): this {
     this.cli = this.cli.then((cli) => cli.command(...args));
 
     return this;
   }
 
-  commandFrom(path) {
+  commandFrom(path: string): this {
     this.cli = this.cli.then(async (cli) => {
-      const io = await importFrom(path, this.root);
+      const io = await importFrom(path, String(this.root));
 
       return cli.command(io);
     });
@@ -117,10 +147,10 @@ export class Cheetor {
     return this;
   }
 
-  commandSafe(path) {
+  commandSafe(path: string): this {
     this.cli = this.cli.then((cli) =>
-      importFromSafe(path, this.root).then((mod) => {
-        if (mod && mod.command) {
+      importFromSafe(path, String(this.root)).then((mod) => {
+        if (mod && (mod as Module).command) {
           return cli.command(mod);
         }
 
@@ -131,7 +161,7 @@ export class Cheetor {
     return this;
   }
 
-  commandSmart(func) {
+  commandSmart(func: () => Module | undefined): this {
     this.cli = this.cli.then(async (cli) => {
       const mod = func();
 
@@ -145,19 +175,19 @@ export class Cheetor {
     return this;
   }
 
-  website(site) {
+  website(site: string): this {
     this.site = site;
 
     return this;
   }
 
-  middleware(...args) {
+  middleware(...args: unknown[]): this {
     this.cli = this.cli.then((cli) => cli.middleware(...args));
 
     return this;
   }
 
-  setup(action) {
+  setup(action?: (parsed: unknown) => unknown): Promise<unknown> {
     return this.cli
       .then((cli) => ready(cli, this))
       .then((cli) => {

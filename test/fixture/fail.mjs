@@ -1,4 +1,4 @@
-import { Cheetor } from '../../index.mjs';
+import { Cheetor } from '../../src/index.mts';
 
 new Cheetor('../../package.json', import.meta.url)
   .commandSafe('../error.js')

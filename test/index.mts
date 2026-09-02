@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { importFrom, importFromSafe } from '../src/lib.mjs';
-import { Cheetor } from '../src/index.mjs';
+import { importFrom, importFromSafe } from '../src/lib.mts';
+import { Cheetor } from '../src/index.mts';
 
 import { Run } from './helper/util.mts';
 

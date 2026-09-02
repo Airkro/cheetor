@@ -22,8 +22,8 @@
   "bugs": {
     "url": "https://github.com/airkro/cheetor/issues"
   },
-  "main": "src/index.mjs",
-  "exports": "./src/index.mjs",
+  "main": "src/index.mts",
+  "exports": "./src/index.mts",
   "files": [
     "src"
   ],
