@@ -91,12 +91,7 @@ export class Cheetor {
         ? (JSON.parse(readFileSync(new URL(pkg, root)).toString()) as Pkg)
         : pkg;
 
-    const {
-      bin,
-      homepage,
-      name = 'cheetor',
-      version,
-    } = data;
+    const { bin, homepage, name = 'cheetor', version } = data;
     const { url = '' } =
       data.repository && typeof data.repository === 'object'
         ? data.repository
