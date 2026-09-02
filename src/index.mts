@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import yargs from 'yargs';
+import { cac, type CAC } from 'cac';
 
 import { importFrom, importFromSafe } from './lib.mts';
 
@@ -8,9 +8,10 @@ type Bin = string | Record<string, string> | undefined;
 
 type Module = {
   command?: unknown;
+  describe?: unknown;
 };
 
-type Cli = any;
+type Cli = CAC;
 
 type Pkg = {
   bin?: Bin;
@@ -19,44 +20,6 @@ type Pkg = {
   repository?: string | { url?: string };
   version?: string;
 };
-
-function hasKeys(object: Record<string, unknown>): boolean {
-  return Object.keys(object).some((item) => item && item !== '$0');
-}
-
-function ready(cli: Cli, that: Cheetor): Cli {
-  const { homepage, site = homepage, repository } = that;
-
-  const hasWebsite = Boolean(site && site !== repository);
-
-  const instance = cli.getInternalMethods();
-
-  const hasCommand = hasKeys(instance.getCommandInstance().handlers);
-
-  if (instance.getUsageInstance().getUsage().length === 0) {
-    if (hasCommand) {
-      cli.usage('Usage: $0 <command>');
-    } else {
-      cli.usage('Usage: $0');
-    }
-  }
-
-  if (hasCommand) {
-    cli.demandCommand(1, "Won't work without a command");
-  }
-
-  if (hasWebsite) {
-    cli.epilogue(`Website: ${site}`);
-  }
-
-  if (repository) {
-    cli.epilogue(
-      `Repository: ${repository.replace(/^git\+/, '').replace(/\.git$/, '')}`,
-    );
-  }
-
-  return cli;
-}
 
 function parseBin(bin: Bin, name: string): string | false {
   if (typeof bin === 'string' || !bin) {
@@ -70,6 +33,12 @@ function parseBin(bin: Bin, name: string): string | false {
   }
 
   return false;
+}
+
+function register(cli: Cli, command: unknown, describe: unknown): void {
+  if (typeof command === 'string') {
+    cli.command(command, typeof describe === 'string' ? describe : '');
+  }
 }
 
 export class Cheetor {
@@ -102,19 +71,12 @@ export class Cheetor {
       ? url.replace(/\.git$/, '')
       : '';
 
-    const cli = yargs(process.argv.slice(2))
-      .strict()
-      .alias('help', 'h')
-      .alias('version', 'v')
-      .hide('help')
-      .version(version)
-      .hide('version')
-      .detectLocale(false);
+    const cli = cac(parseBin(bin, name) || name);
 
-    const $0 = parseBin(bin, name);
+    cli.help();
 
-    if ($0) {
-      cli.scriptName($0);
+    if (version) {
+      cli.version(version);
     }
 
     this.cli = Promise.resolve(cli);
@@ -127,31 +89,50 @@ export class Cheetor {
   }
 
   command(...args: unknown[]): this {
-    this.cli = this.cli.then((cli) => cli.command(...args));
+    this.cli = this.cli.then((cli) => {
+      const [first, ...rest] = args;
+
+      if (typeof first === 'string') {
+        register(cli, first, rest[0]);
+      } else if (first && typeof first === 'object') {
+        const { command, describe } = first as Module;
+        register(cli, command, describe);
+      }
+
+      return cli;
+    });
 
     return this;
   }
 
   commandFrom(path: string): this {
     this.cli = this.cli.then(async (cli) => {
-      const io = await importFrom(path, String(this.root));
+      const { command, describe } = (await importFrom(
+        path,
+        String(this.root),
+      )) as Module;
 
-      return cli.command(io);
+      register(cli, command, describe);
+
+      return cli;
     });
 
     return this;
   }
 
   commandSafe(path: string): this {
-    this.cli = this.cli.then((cli) =>
-      importFromSafe(path, String(this.root)).then((mod) => {
-        if (mod && (mod as Module).command) {
-          return cli.command(mod);
-        }
+    this.cli = this.cli.then(async (cli) => {
+      const mod = (await importFromSafe(path, String(this.root))) as
+        Module | false;
 
-        return cli;
-      }),
-    );
+      if (mod) {
+        const { command, describe } = mod;
+
+        register(cli, command, describe);
+      }
+
+      return cli;
+    });
 
     return this;
   }
@@ -160,8 +141,10 @@ export class Cheetor {
     this.cli = this.cli.then(async (cli) => {
       const mod = func();
 
-      if (mod && mod.command) {
-        return cli.command(mod);
+      if (mod) {
+        const { command, describe } = mod;
+
+        register(cli, command, describe);
       }
 
       return cli;
@@ -176,15 +159,49 @@ export class Cheetor {
     return this;
   }
 
-  middleware(...args: unknown[]): this {
-    this.cli = this.cli.then((cli) => cli.middleware(...args));
-
-    return this;
-  }
-
   setup(action?: (parsed: unknown) => unknown): Promise<unknown> {
     return this.cli
-      .then((cli) => ready(cli, this))
+      .then((cli) => {
+        const { homepage, site = homepage, repository } = this;
+
+        const hasWebsite = Boolean(site && site !== repository);
+
+        const hasCommand = cli.commands.length > 0;
+
+        const defaultUsage = '<command> [options]';
+
+        const { usageText } = cli.globalCommand;
+
+        if (!usageText || usageText === defaultUsage) {
+          cli.usage(hasCommand ? '<command>' : '');
+        }
+
+        cli.globalCommand.helpCallback = (sections) => {
+          if (!hasCommand) {
+            sections = sections.map((section) =>
+              section.title === 'Usage'
+                ? { title: 'Usage', body: `  $ ${cli.name}` }
+                : section,
+            );
+          }
+
+          if (hasWebsite) {
+            sections.push({ body: `Website: ${site}` });
+          }
+
+          if (repository) {
+            sections.push({
+              body: `Repository: ${repository
+                .replace(/^git\+/, '')
+                .replace(/\.git$/, '')}`,
+            });
+          }
+
+          return sections;
+        };
+
+        return cli;
+      })
       .then((cli) => {
         if (typeof action === 'function') {
           return action(cli.parse());

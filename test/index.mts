@@ -8,68 +8,64 @@ import { Run } from './helper/util.mts';
 const h = vi.hoisted(() => {
   const created: Array<{ ctrl: any; cli: any }> = [];
 
-  function make() {
+  function make(name?: string) {
     const ctrl: any = {
-      handlers: {},
-      usage: [],
+      name: name || '',
+      version: undefined,
+      helpCalled: false,
+      commands: [],
+      usageText: '<command> [options]',
+      helpCallback: undefined,
       parseResult: 'parsed',
-      scriptName: undefined,
-      usageMsg: undefined,
-      demand: false,
-      epilogues: [] as string[],
-      commandArg: undefined,
-      middlewareArgs: undefined,
-      configCalls: 0,
+      commandCalls: [] as any[],
+    };
+
+    const globalCommand: any = {
+      usageText: '<command> [options]',
+      get helpCallback() {
+        return ctrl.helpCallback;
+      },
+      set helpCallback(fn: any) {
+        ctrl.helpCallback = fn;
+      },
     };
 
     const cli: any = {
-      strict() {
+      get name() {
+        return ctrl.name;
+      },
+      set name(n: string) {
+        ctrl.name = n;
+      },
+      get commands() {
+        return ctrl.commands;
+      },
+      get globalCommand() {
+        return globalCommand;
+      },
+      help() {
+        ctrl.helpCalled = true;
         return cli;
       },
-      alias() {
+      version(v: any) {
+        ctrl.version = v;
         return cli;
       },
-      hide() {
+      usage(t: string) {
+        ctrl.usageText = t;
+        globalCommand.usageText = t;
         return cli;
       },
-      version() {
-        return cli;
-      },
-      detectLocale() {
-        return cli;
-      },
-      scriptName(n: any) {
-        ctrl.scriptName = n;
-        return cli;
-      },
-      usage(s: any) {
-        ctrl.usageMsg = s;
-        return cli;
-      },
-      demandCommand() {
-        ctrl.demand = true;
-        return cli;
-      },
-      epilogue(s: any) {
-        ctrl.epilogues.push(s);
-        return cli;
-      },
-      command(m: any) {
-        ctrl.commandArg = m;
-        return cli;
-      },
-      middleware(...a: any[]) {
-        ctrl.middlewareArgs = a;
-        return cli;
+      command(...args: any[]) {
+        ctrl.commandCalls.push(args);
+        const cmd: any = { rawName: args[0], description: args[1] || '' };
+        cmd.action = () => cmd;
+        cmd.option = () => cmd;
+        ctrl.commands.push(cmd);
+        return cmd;
       },
       parse() {
         return ctrl.parseResult;
-      },
-      getInternalMethods() {
-        return {
-          getCommandInstance: () => ({ handlers: ctrl.handlers }),
-          getUsageInstance: () => ({ getUsage: () => ctrl.usage }),
-        };
       },
     };
 
@@ -80,7 +76,10 @@ const h = vi.hoisted(() => {
   return { created, make };
 });
 
-vi.mock('yargs', () => ({ default: () => h.make() }));
+vi.mock('cac', () => ({
+  cac: (name?: string) => h.make(name),
+  default: (name?: string) => h.make(name),
+}));
 
 const FIXTURE = new URL('./fixture/', import.meta.url).href;
 
@@ -90,7 +89,7 @@ function makeCheetor(pkg: any, root: any = import.meta.url) {
   if (!entry) {
     throw new Error('no fake cli was created');
   }
-  return { c, ctrl: entry.ctrl };
+  return { c, ctrl: entry.ctrl, cli: entry.cli };
 }
 
 describe('lib', () => {
@@ -122,7 +121,7 @@ describe('lib', () => {
 });
 
 describe('Cheetor constructor', () => {
-  it('reads a package.json string and strips repository', () => {
+  it('reads a package.json string and extracts metadata', () => {
     const { c } = makeCheetor('../package.json');
     expect(c.homepage).toBe('https://www.npmjs.com/package/cheetor');
     expect(c.repository).toBe('git+https://github.com/airkro/cheetor');
@@ -135,105 +134,193 @@ describe('Cheetor constructor', () => {
     });
     expect(c.repository).toBe('');
     expect(c.homepage).toBe('https://example.com');
-    expect(ctrl.scriptName).toBe('cheetor');
+    expect(ctrl.name).toBe('cheetor');
   });
 
   it('uses pkg name when bin is a string', () => {
     const { ctrl } = makeCheetor({ name: 'mypkg', bin: 'bin.js' });
-    expect(ctrl.scriptName).toBe('mypkg');
+    expect(ctrl.name).toBe('mypkg');
   });
 
   it('uses single bin key when bin is a single-key object', () => {
     const { ctrl } = makeCheetor({ name: 'mypkg', bin: { one: 'x' } });
-    expect(ctrl.scriptName).toBe('one');
+    expect(ctrl.name).toBe('one');
   });
 
-  it('sets no scriptName when bin object has many keys', () => {
+  it('uses pkg name when bin object has many keys', () => {
     const { ctrl } = makeCheetor({
       name: 'mypkg',
       bin: { one: 'x', two: 'y' },
     });
-    expect(ctrl.scriptName).toBeUndefined();
+    expect(ctrl.name).toBe('mypkg');
+  });
+
+  it('enables help on cli', () => {
+    const { ctrl } = makeCheetor({ name: 'mypkg' });
+    expect(ctrl.helpCalled).toBe(true);
+  });
+
+  it('sets version when provided', () => {
+    const { ctrl } = makeCheetor({ name: 'mypkg', version: '1.2.3' });
+    expect(ctrl.version).toBe('1.2.3');
+  });
+
+  it('does not set version when not provided', () => {
+    const { ctrl } = makeCheetor({ name: 'mypkg' });
+    expect(ctrl.version).toBeUndefined();
   });
 });
 
 describe('Cheetor methods', () => {
-  it('config appends a function to the cli chain', async () => {
-    const { c, ctrl } = makeCheetor({});
+  it('config calls the function with the cli', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    let receivedName = '';
     c.config((cli: any) => {
-      ctrl.configCalls += 1;
+      receivedName = cli.name;
       return cli;
     });
-    expect(await c.setup()).toBe('parsed');
-    expect(ctrl.configCalls).toBe(1);
+    await c.setup();
+    expect(receivedName).toBe('test');
+    expect(ctrl.parseResult).toBe('parsed');
   });
 
-  it('command forwards args', async () => {
-    const { c, ctrl } = makeCheetor({});
+  it('command registers with string name and description', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
     c.command('static', 'description');
     await c.setup();
-    expect(ctrl.commandArg).toBe('static');
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['static', 'description']);
+    expect(ctrl.commands).toHaveLength(1);
   });
 
-  it('middleware forwards args and website stores site', async () => {
-    const { c, ctrl } = makeCheetor({ homepage: 'h' });
-    c.middleware('a', 'b');
-    c.website('https://site.com');
+  it('command registers with module object', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.command({ command: 'test', describe: 'command test' });
     await c.setup();
-    expect(ctrl.middlewareArgs).toEqual(['a', 'b']);
-    expect(c.site).toBe('https://site.com');
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['test', 'command test']);
+  });
+
+  it('command handles missing description', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.command('onlyname');
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['onlyname', '']);
+  });
+
+  it('command handles module without description', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.command({ command: 'nondesc' });
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['nondesc', '']);
+  });
+
+  it('command ignores module without command field', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.command({ describe: 'no command here' });
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(0);
+  });
+
+  it('command does nothing for invalid args', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.command(123 as any);
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(0);
   });
 
   it('commandFrom imports a module and registers a command', async () => {
-    const { c, ctrl } = makeCheetor({}, FIXTURE);
+    const { c, ctrl } = makeCheetor({ name: 'test' }, FIXTURE);
     c.commandFrom('./command.mjs');
     await c.setup();
-    expect(ctrl.commandArg).toBeDefined();
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['test', 'command test']);
   });
 
   it('commandSafe registers module command when present', async () => {
-    const { c, ctrl } = makeCheetor({}, FIXTURE);
+    const { c, ctrl } = makeCheetor({ name: 'test' }, FIXTURE);
     c.commandSafe('./command.mjs');
     await c.setup();
-    expect(ctrl.commandArg).toBeDefined();
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['test', 'command test']);
+  });
+
+  it('commandFrom handles module without description', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' }, FIXTURE);
+    c.commandFrom('./deep/nondesc.mjs');
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['nondesc', '']);
   });
 
   it('commandSafe keeps cli when module has no command', async () => {
-    const { c, ctrl } = makeCheetor({}, FIXTURE);
+    const { c, ctrl } = makeCheetor({ name: 'test' }, FIXTURE);
     c.commandSafe('./nocommand.mjs');
     await c.setup();
-    expect(ctrl.commandArg).toBeUndefined();
+    expect(ctrl.commandCalls).toHaveLength(0);
+  });
+
+  it('commandSafe handles module without description', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' }, FIXTURE);
+    c.commandSafe('./deep/nondesc.mjs');
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['nondesc', '']);
   });
 
   it('commandSafe keeps cli when module is missing', async () => {
-    const { c, ctrl } = makeCheetor({}, FIXTURE);
+    const { c, ctrl } = makeCheetor({ name: 'test' }, FIXTURE);
     c.commandSafe('./__missing__.mjs');
     await c.setup();
-    expect(ctrl.commandArg).toBeUndefined();
+    expect(ctrl.commandCalls).toHaveLength(0);
   });
 
   it('commandSafe rethrows real errors', async () => {
-    const { c } = makeCheetor({}, FIXTURE);
+    const { c } = makeCheetor({ name: 'test' }, FIXTURE);
     c.commandSafe('./throws.mjs');
     await expect(c.setup()).rejects.toThrow('boom');
   });
 
   it('commandSmart registers command when module has one', async () => {
-    const { c, ctrl } = makeCheetor({});
-    c.commandSmart(() => ({ command: 'smart' }));
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.commandSmart(() => ({ command: 'smart', describe: 'command smart' }));
     await c.setup();
-    expect(ctrl.commandArg).toEqual({ command: 'smart' });
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['smart', 'command smart']);
+  });
+
+  it('commandSmart handles module without description', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.commandSmart(() => ({ command: 'nondesc' }));
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(1);
+    expect(ctrl.commandCalls[0]).toEqual(['nondesc', '']);
+  });
+
+  it('commandSmart ignores module without command field', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.commandSmart(() => ({ describe: 'no cmd' }));
+    await c.setup();
+    expect(ctrl.commandCalls).toHaveLength(0);
   });
 
   it('commandSmart keeps cli when func returns nothing', async () => {
-    const { c, ctrl } = makeCheetor({});
+    const { c, ctrl } = makeCheetor({ name: 'test' });
     c.commandSmart(() => {});
     await c.setup();
-    expect(ctrl.commandArg).toBeUndefined();
+    expect(ctrl.commandCalls).toHaveLength(0);
+  });
+
+  it('website stores site', async () => {
+    const { c } = makeCheetor({ name: 'test' });
+    c.website('https://site.com');
+    expect(c.site).toBe('https://site.com');
   });
 
   it('setup invokes action with parsed value', async () => {
-    const { c } = makeCheetor({});
+    const { c } = makeCheetor({ name: 'test' });
     const result = await c.setup((parsed: any) => {
       expect(parsed).toBe('parsed');
       return 'action';
@@ -243,48 +330,103 @@ describe('Cheetor methods', () => {
 });
 
 describe('ready usage rendering', () => {
-  it('renders simple usage without a command', async () => {
-    const { c, ctrl } = makeCheetor({ homepage: '', repository: { url: '' } });
-    c.website('');
-    ctrl.usage = [];
-    ctrl.handlers = {};
+  it('sets empty usage when no commands', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
     await c.setup();
-    expect(ctrl.usageMsg).toBe('Usage: $0');
-    expect(ctrl.demand).toBe(false);
-    expect(ctrl.epilogues).toEqual([]);
+    expect(ctrl.usageText).toBe('');
   });
 
-  it('renders command usage with website and repository', async () => {
+  it('sets command usage when commands exist', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.command('cmd', 'desc');
+    await c.setup();
+    expect(ctrl.usageText).toBe('<command>');
+  });
+
+  it('preserves custom usage text', async () => {
+    const { c, ctrl, cli } = makeCheetor({ name: 'test' });
+    cli.usage('custom usage');
+    await c.setup();
+    expect(ctrl.usageText).toBe('custom usage');
+  });
+
+  it('sets help callback with website and repository', async () => {
     const { c, ctrl } = makeCheetor({
+      name: 'test',
       homepage: 'https://site.com',
       repository: { url: 'git+https://github.com/a/b.git' },
     });
-    ctrl.handlers = { '': 0, $0: 1, cmd: 1 };
-    ctrl.usage = [];
     await c.setup();
-    expect(ctrl.usageMsg).toBe('Usage: $0 <command>');
-    expect(ctrl.demand).toBe(true);
-    expect(ctrl.epilogues).toEqual([
-      'Website: https://site.com',
-      'Repository: https://github.com/a/b',
-    ]);
+    expect(typeof ctrl.helpCallback).toBe('function');
+    const sections: any[] = [];
+    const result = ctrl.helpCallback(sections);
+    expect(result).toBeDefined();
   });
 
-  it('keeps existing usage text', async () => {
-    const { c, ctrl } = makeCheetor({ repository: { url: 'https://x.com' } });
-    ctrl.usage = ['predefined'];
-    ctrl.handlers = { cmd: 1 };
+  it('help callback adds website section', async () => {
+    const { c, ctrl } = makeCheetor({
+      name: 'test',
+      homepage: 'https://site.com',
+      repository: { url: '' },
+    });
     await c.setup();
-    expect(ctrl.usageMsg).toBeUndefined();
-    expect(ctrl.demand).toBe(true);
+    const sections: any[] = [];
+    const result = ctrl.helpCallback(sections);
+    expect(
+      result.some((s: any) => s.body === 'Website: https://site.com'),
+    ).toBe(true);
   });
 
-  it('omits repository epilogue when repository is empty', async () => {
-    const { c, ctrl } = makeCheetor({ homepage: 'https://site.com' });
-    ctrl.handlers = {};
-    ctrl.usage = [];
+  it('help callback adds repository section', async () => {
+    const { c, ctrl } = makeCheetor({
+      name: 'test',
+      homepage: '',
+      repository: { url: 'git+https://github.com/a/b.git' },
+    });
     await c.setup();
-    expect(ctrl.epilogues).toEqual(['Website: https://site.com']);
+    const sections: any[] = [];
+    const result = ctrl.helpCallback(sections);
+    expect(
+      result.some((s: any) => s.body === 'Repository: https://github.com/a/b'),
+    ).toBe(true);
+  });
+
+  it('help callback omits website when site is empty', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test', homepage: '' });
+    c.website('');
+    await c.setup();
+    const sections: any[] = [];
+    const result = ctrl.helpCallback(sections);
+    expect(result.some((s: any) => s.body.startsWith('Website:'))).toBe(false);
+  });
+
+  it('help callback customizes usage for no-command case', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    await c.setup();
+
+    const sections = [
+      { body: 'test' },
+      { title: 'Usage', body: '  $ test <command> [options]' },
+      { title: 'Options', body: '-h, --help' },
+    ];
+    const result = ctrl.helpCallback(sections);
+    const usageSection = result.find((s: any) => s.title === 'Usage');
+    expect(usageSection.body).toBe('  $ test');
+  });
+
+  it('help callback keeps usage for command case', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    c.command('cmd', 'desc');
+    await c.setup();
+
+    const sections = [
+      { body: 'test' },
+      { title: 'Usage', body: '  $ test <command>' },
+      { title: 'Commands', body: 'cmd  desc' },
+    ];
+    const result = ctrl.helpCallback(sections);
+    const usageSection = result.find((s: any) => s.title === 'Usage');
+    expect(usageSection.body).toBe('  $ test <command>');
   });
 });
 

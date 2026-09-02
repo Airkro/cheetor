@@ -22,23 +22,44 @@ exports[`integration via node child process > fail 1`] = `
 
 exports[`integration via node child process > help 1`] = `
 [
-  "Usage: cheetor",
+  "cheetor/0.13.1",
+  "",
+  "Usage:",
+  "  $ cheetor",
+  "",
+  "Options:",
+  "  -h, --help     Display this message ",
+  "  -v, --version  Display version number ",
   "",
   "Website: https://www.npmjs.com/package/cheetor",
+  "",
   "Repository: https://github.com/airkro/cheetor",
 ]
 `;
 
 exports[`integration via node child process > okay 1`] = `
 [
-  "Usage: cheetor <command>",
+  "cheetor/0.13.1",
+  "",
+  "Usage:",
+  "  $ cheetor <command>",
   "",
   "Commands:",
-  "  cheetor static  command static",
-  "  cheetor test    command test",
-  "  cheetor smart   command smart",
+  "  static  command static",
+  "  test    command test",
+  "  smart   command smart",
+  "",
+  "For more info, run any command with the \`--help\` flag:",
+  "  $ cheetor static --help",
+  "  $ cheetor test --help",
+  "  $ cheetor smart --help",
+  "",
+  "Options:",
+  "  -h, --help     Display this message ",
+  "  -v, --version  Display version number ",
   "",
   "Website: https://www.npmjs.com/package/cheetor",
+  "",
   "Repository: https://github.com/airkro/cheetor",
 ]
 `;

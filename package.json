@@ -8,11 +8,11 @@
   },
   "keywords": [
     "builder",
+    "cac",
     "cheetor",
     "cli",
     "helper",
-    "utils",
-    "yargs"
+    "utils"
   ],
   "homepage": "https://www.npmjs.com/package/cheetor",
   "repository": {
@@ -41,7 +41,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "yargs": "^18.1.0"
+    "cac": "^7.0.0"
   },
   "devDependencies": {
     "@bring-it/npm": "^0.9.6",
