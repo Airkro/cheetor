@@ -7,7 +7,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
-      include: ['index.mjs', 'lib.mjs'],
+      include: ['src'],
       thresholds: {
         statements: 100,
         branches: 100,

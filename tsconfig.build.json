@@ -1,0 +1,10 @@
+{
+  "extends": "@nice-move/tsconfig/node-bundle.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": [
+    "src"
+  ]
+}

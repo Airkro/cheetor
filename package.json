@@ -22,13 +22,14 @@
   "bugs": {
     "url": "https://github.com/airkro/cheetor/issues"
   },
-  "main": "index.mjs",
-  "exports": "./index.mjs",
+  "main": "src/index.mjs",
+  "exports": "./src/index.mjs",
   "files": [
-    "lib.mjs"
+    "src"
   ],
   "type": "module",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "fmt:prettier": "prettier -w .",
     "lint:eslint": "eslint . --quiet --fix --concurrency=auto",
     "lint:staged": "nice-move lint staged",
