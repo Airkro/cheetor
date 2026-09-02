@@ -94,18 +94,27 @@ function makeCheetor(pkg: any, root: any = import.meta.url) {
 
 describe('lib', () => {
   it('importFrom with relative path', async () => {
-    const mod = await importFrom('./command.mjs', FIXTURE);
+    const mod = await importFrom<{ command: string; describe: string }>(
+      './command.mjs',
+      FIXTURE,
+    );
     expect(mod.command).toBe('test');
   });
 
   it('importFrom with bare path', async () => {
-    const mod = await importFrom('node:path');
+    const mod = await importFrom<typeof import('node:path')>('node:path');
     expect(typeof mod.join).toBe('function');
   });
 
   it('importFromSafe success', async () => {
-    const mod = await importFromSafe('./command.mjs', FIXTURE);
-    expect(mod.command).toBe('test');
+    const mod = await importFromSafe<{ command: string; describe: string }>(
+      './command.mjs',
+      FIXTURE,
+    );
+    expect(mod).not.toBe(false);
+    if (mod) {
+      expect(mod.command).toBe('test');
+    }
   });
 
   it('importFromSafe returns false on missing module', async () => {

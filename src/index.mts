@@ -7,8 +7,8 @@ import { importFrom, importFromSafe } from './lib.mts';
 type Bin = string | Record<string, string> | undefined;
 
 type Module = {
-  command?: unknown;
-  describe?: unknown;
+  command?: string;
+  describe?: string;
 };
 
 type Cli = CAC;
@@ -35,10 +35,14 @@ function parseBin(bin: Bin, name: string): string | false {
   return false;
 }
 
-function register(cli: Cli, command: unknown, describe: unknown): void {
+function register(cli: Cli, { command, describe }: Module): void {
   if (typeof command === 'string') {
     cli.command(command, typeof describe === 'string' ? describe : '');
   }
+}
+
+function repositoryText(repository: string): string {
+  return repository.replace(/^git\+/, '').replace(/\.git$/, '');
 }
 
 export class Cheetor {
@@ -88,15 +92,14 @@ export class Cheetor {
     return this;
   }
 
-  command(...args: unknown[]): this {
+  command(name: string, description?: string): this;
+  command(module: Module): this;
+  command(target: string | Module, description?: string): this {
     this.cli = this.cli.then((cli) => {
-      const [first, ...rest] = args;
-
-      if (typeof first === 'string') {
-        register(cli, first, rest[0]);
-      } else if (first && typeof first === 'object') {
-        const { command, describe } = first as Module;
-        register(cli, command, describe);
+      if (typeof target === 'string') {
+        cli.command(target, description ?? '');
+      } else {
+        register(cli, target);
       }
 
       return cli;
@@ -107,12 +110,9 @@ export class Cheetor {
 
   commandFrom(path: string): this {
     this.cli = this.cli.then(async (cli) => {
-      const { command, describe } = (await importFrom(
-        path,
-        String(this.root),
-      )) as Module;
+      const module = await importFrom<Module>(path, String(this.root));
 
-      register(cli, command, describe);
+      register(cli, module);
 
       return cli;
     });
@@ -122,13 +122,10 @@ export class Cheetor {
 
   commandSafe(path: string): this {
     this.cli = this.cli.then(async (cli) => {
-      const mod = (await importFromSafe(path, String(this.root))) as
-        Module | false;
+      const module = await importFromSafe<Module>(path, String(this.root));
 
-      if (mod) {
-        const { command, describe } = mod;
-
-        register(cli, command, describe);
+      if (module) {
+        register(cli, module);
       }
 
       return cli;
@@ -139,12 +136,10 @@ export class Cheetor {
 
   commandSmart(func: () => Module | undefined): this {
     this.cli = this.cli.then(async (cli) => {
-      const mod = func();
+      const module = func();
 
-      if (mod) {
-        const { command, describe } = mod;
-
-        register(cli, command, describe);
+      if (module) {
+        register(cli, module);
       }
 
       return cli;
@@ -162,42 +157,34 @@ export class Cheetor {
   setup(action?: (parsed: unknown) => unknown): Promise<unknown> {
     return this.cli
       .then((cli) => {
-        const { homepage, site = homepage, repository } = this;
+        const { homepage, repository, site = homepage } = this;
+        const { globalCommand, name } = cli;
 
         const hasWebsite = Boolean(site && site !== repository);
-
         const hasCommand = cli.commands.length > 0;
-
+        const { usageText } = globalCommand;
         const defaultUsage = '<command> [options]';
-
-        const { usageText } = cli.globalCommand;
 
         if (!usageText || usageText === defaultUsage) {
           cli.usage(hasCommand ? '<command>' : '');
         }
 
-        cli.globalCommand.helpCallback = (sections) => {
-          if (!hasCommand) {
-            sections = sections.map((section) =>
-              section.title === 'Usage'
-                ? { title: 'Usage', body: `  $ ${cli.name}` }
-                : section,
-            );
-          }
+        globalCommand.helpCallback = (sections) => {
+          const next = sections.map((section) =>
+            !hasCommand && section.title === 'Usage'
+              ? { title: 'Usage', body: `  $ ${name}` }
+              : section,
+          );
 
           if (hasWebsite) {
-            sections.push({ body: `Website: ${site}` });
+            next.push({ body: `Website: ${site}` });
           }
 
           if (repository) {
-            sections.push({
-              body: `Repository: ${repository
-                .replace(/^git\+/, '')
-                .replace(/\.git$/, '')}`,
-            });
+            next.push({ body: `Repository: ${repositoryText(repository)}` });
           }
 
-          return sections;
+          return next;
         };
 
         return cli;
