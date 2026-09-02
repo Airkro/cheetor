@@ -1,0 +1,44 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`integration via node child process > base 1`] = `
+[
+  "",
+]
+`;
+
+exports[`integration via node child process > deep 1`] = `
+[
+  "",
+]
+`;
+
+exports[`integration via node child process > fail 1`] = `
+[
+  "789",
+  "456",
+  "456",
+]
+`;
+
+exports[`integration via node child process > help 1`] = `
+[
+  "Usage: cheetor",
+  "",
+  "Website: https://www.npmjs.com/package/cheetor",
+  "Repository: https://github.com/airkro/cheetor",
+]
+`;
+
+exports[`integration via node child process > okay 1`] = `
+[
+  "Usage: cheetor <command>",
+  "",
+  "Commands:",
+  "  cheetor static  command static",
+  "  cheetor test    command test",
+  "  cheetor smart   command smart",
+  "",
+  "Website: https://www.npmjs.com/package/cheetor",
+  "Repository: https://github.com/airkro/cheetor",
+]
+`;
