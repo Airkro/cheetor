@@ -1,0 +1,6 @@
+configDependencies:
+  pnpm-plugin-nice-move: 0.3.8+sha512-qfxDv6ji7mld08/k6WIFBq1XwFH6KgIKdBoGgvQ4CcOHENt1BlHDI9TALdPVL23vEBmEuon4di7gNBoMGr5RZg==
+
+shamefullyHoist: true
+
+minimumReleaseAge: 1

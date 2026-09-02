@@ -1,4 +1,3 @@
- 
 import { readFileSync } from 'node:fs';
 
 import yargs from 'yargs';
@@ -35,7 +34,9 @@ function ready(cli, that) {
   }
 
   if (repository) {
-    cli.epilogue(`Repository: ${repository}`);
+    cli.epilogue(
+      `Repository: ${repository.replace(/^git\+/, '').replace(/\.git$/, '')}`,
+    );
   }
 
   return cli;
@@ -56,6 +57,8 @@ function parseBin(bin, name) {
 }
 
 export class Cheetor {
+  site;
+
   constructor(pkg, root) {
     this.root = root;
 

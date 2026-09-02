@@ -4,7 +4,7 @@ new Cheetor('../../package.json', import.meta.url)
   .commandSafe('../error.js')
   .setup()
   .catch((error) => {
-    console.error(error.message,);
+    console.error(error.message);
   });
 
 new Cheetor('../../package.json', import.meta.url)

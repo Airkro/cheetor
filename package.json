@@ -1,11 +1,10 @@
 {
   "name": "cheetor",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
-    "name": "Eric Chen",
-    "email": "airkro@qq.com"
+    "name": "Eric Chen"
   },
   "keywords": [
     "builder",
@@ -18,7 +17,7 @@
   "homepage": "https://www.npmjs.com/package/cheetor",
   "repository": {
     "type": "git",
-    "url": "https://github.com/airkro/cheetor.git"
+    "url": "git+https://github.com/airkro/cheetor.git"
   },
   "bugs": {
     "url": "https://github.com/airkro/cheetor/issues"
@@ -30,39 +29,40 @@
   ],
   "type": "module",
   "scripts": {
+    "fmt:prettier": "prettier -w .",
+    "lint:eslint": "eslint . --quiet --fix --concurrency=auto",
     "lint:staged": "nice-move lint staged",
+    "lint:type": "tsc -p tsconfig.json",
     "prepare": "nice-move git hooks",
-    "prepublishOnly": "pnpm run lint:staged && pnpm test",
+    "prepublishOnly": "pnpm run lint:staged && pnpm run lint:type && pnpm test",
     "snapshot": "ava --fail-fast -u",
     "test": "ava --fail-fast"
   },
   "dependencies": {
-    "yargs": "^17.7.2"
+    "yargs": "^18.1.0"
   },
   "devDependencies": {
-    "@bring-it/npm": "^0.8.3",
-    "@nice-move/cli": "^0.11.1",
-    "@nice-move/eslint-config-base": "^0.10.0",
-    "@nice-move/prettier-config": "^0.10.0",
-    "ava": "^5.3.1",
-    "eslint": "^8.56.0",
-    "eslint-plugin-ava": "^14.0.0",
-    "garou": "^0.6.17",
-    "prettier": "^3.1.1"
+    "@bring-it/npm": "^0.9.6",
+    "@nice-move/all-in-base": "^0.9.1",
+    "ava": "^8.0.1",
+    "eslint": "^10.9.1",
+    "garou": "^0.9.21",
+    "prettier": "~3.9.6",
+    "typescript": "~6.0.3"
   },
+  "packageManager": "pnpm@10.34.5",
   "engines": {
-    "node": ">=16.13.0 || ^14.17.0"
+    "node": ">=16.13.0 || ^14.17.0",
+    "pnpm": "^10.33.2"
   },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "packageManager": "pnpm@8.15.9",
-  "eslintConfig": {
-    "extends": "@nice-move/eslint-config-base"
-  },
-  "nice-move": {
-    "import-groups": "nice-move-preset"
+  "ava": {
+    "extensions": [
+      "mjs"
+    ]
   },
   "prettier": "@nice-move/prettier-config"
 }

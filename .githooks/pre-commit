@@ -1,4 +1,5 @@
 #!/bin/sh
 
-pnpm run lint:staged
-pnpm test
+pnpm run lint:staged || exit 1
+pnpm run lint:type || exit 1
+pnpm test || exit 1

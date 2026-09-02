@@ -1,8 +1,7 @@
-import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export function importFrom(path, root) {
-  const io = path.startsWith('.') ? join(root, path) : path;
+  const io = path.startsWith('.') ? new URL(path, `${root}/`).href : path;
 
   return import(/* webpackIgnore: true */ io);
 }
