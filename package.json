@@ -22,10 +22,10 @@
   "bugs": {
     "url": "https://github.com/airkro/cheetor/issues"
   },
-  "main": "src/index.mts",
-  "exports": "./src/index.mts",
+  "main": "dist/index.mts",
+  "exports": "./dist/index.mts",
   "files": [
-    "src"
+    "dist"
   ],
   "type": "module",
   "scripts": {
@@ -35,7 +35,7 @@
     "lint:staged": "nice-move lint staged",
     "lint:type": "tsc -p tsconfig.json",
     "prepare": "nice-move git hooks",
-    "prepublishOnly": "pnpm run lint:staged && pnpm run lint:type && pnpm test",
+    "prepublishOnly": "pnpm run lint:eslint && pnpm run lint:type && pnpm test && pnpm build",
     "snapshot": "vitest run -u",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
