@@ -1,5 +1,261 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Cheetor constructor > does not set version when not provided 1`] = `undefined`;
+
+exports[`Cheetor constructor > enables help on cli 1`] = `true`;
+
+exports[`Cheetor constructor > extracts metadata from pkg object 1`] = `"https://www.npmjs.com/package/cheetor"`;
+
+exports[`Cheetor constructor > extracts metadata from pkg object 2`] = `"git+https://github.com/Airkro/cheetor"`;
+
+exports[`Cheetor constructor > ignores non-github repository and defaults name 1`] = `""`;
+
+exports[`Cheetor constructor > ignores non-github repository and defaults name 2`] = `"https://example.com"`;
+
+exports[`Cheetor constructor > ignores non-github repository and defaults name 3`] = `"cheetor"`;
+
+exports[`Cheetor constructor > sets version when provided 1`] = `"1.2.3"`;
+
+exports[`Cheetor constructor > uses pkg name when bin is a string 1`] = `"mypkg"`;
+
+exports[`Cheetor constructor > uses pkg name when bin object has many keys 1`] = `"mypkg"`;
+
+exports[`Cheetor constructor > uses single bin key when bin is a single-key object 1`] = `"one"`;
+
+exports[`Cheetor methods > command does nothing for invalid args 1`] = `[]`;
+
+exports[`Cheetor methods > command handles missing description 1`] = `
+[
+  [
+    "onlyname",
+    "",
+  ],
+]
+`;
+
+exports[`Cheetor methods > command handles module without description 1`] = `
+[
+  [
+    "nondesc",
+    "",
+  ],
+]
+`;
+
+exports[`Cheetor methods > command ignores module without command field 1`] = `[]`;
+
+exports[`Cheetor methods > command registers module options and action 1`] = `
+[
+  {
+    "action": [Function],
+    "actionCalls": [
+      [MockFunction],
+    ],
+    "description": "command test",
+    "option": [Function],
+    "optionCalls": [
+      [
+        "-f, --force",
+        "Force mode",
+      ],
+      [
+        "--level <level>",
+        "Level",
+        {
+          "default": "basic",
+        },
+      ],
+    ],
+    "rawName": "test",
+  },
+]
+`;
+
+exports[`Cheetor methods > command registers module options and action 2`] = `[MockFunction]`;
+
+exports[`Cheetor methods > command registers with module object 1`] = `
+[
+  [
+    "test",
+    "command test",
+  ],
+]
+`;
+
+exports[`Cheetor methods > command registers with string name and description 1`] = `
+[
+  [
+    "static",
+    "description",
+  ],
+]
+`;
+
+exports[`Cheetor methods > command registers with string name and description 2`] = `
+[
+  {
+    "action": [Function],
+    "actionCalls": [],
+    "description": "description",
+    "option": [Function],
+    "optionCalls": [],
+    "rawName": "static",
+  },
+]
+`;
+
+exports[`Cheetor methods > commandFrom handles module without description 1`] = `
+[
+  [
+    "nondesc",
+    "",
+  ],
+]
+`;
+
+exports[`Cheetor methods > commandFrom imports a module and registers a command 1`] = `
+[
+  [
+    "test",
+    "command test",
+  ],
+]
+`;
+
+exports[`Cheetor methods > commandFrom imports a module and registers a command 2`] = `
+[
+  {
+    "action": [Function],
+    "actionCalls": [
+      [Function],
+    ],
+    "description": "command test",
+    "option": [Function],
+    "optionCalls": [
+      [
+        "-f, --force",
+        "Force mode",
+      ],
+      [
+        "--level <level>",
+        "Level",
+        {
+          "default": "basic",
+        },
+      ],
+    ],
+    "rawName": "test",
+  },
+]
+`;
+
+exports[`Cheetor methods > commandFrom imports a module and registers a command 3`] = `"function"`;
+
+exports[`Cheetor methods > commandSafe handles module without description 1`] = `
+[
+  [
+    "nondesc",
+    "",
+  ],
+]
+`;
+
+exports[`Cheetor methods > commandSafe keeps cli when module has no command 1`] = `[]`;
+
+exports[`Cheetor methods > commandSafe keeps cli when module is missing 1`] = `[]`;
+
+exports[`Cheetor methods > commandSafe registers module command when present 1`] = `
+[
+  [
+    "test",
+    "command test",
+  ],
+]
+`;
+
+exports[`Cheetor methods > commandSafe registers module command when present 2`] = `
+[
+  {
+    "action": [Function],
+    "actionCalls": [
+      [Function],
+    ],
+    "description": "command test",
+    "option": [Function],
+    "optionCalls": [
+      [
+        "-f, --force",
+        "Force mode",
+      ],
+      [
+        "--level <level>",
+        "Level",
+        {
+          "default": "basic",
+        },
+      ],
+    ],
+    "rawName": "test",
+  },
+]
+`;
+
+exports[`Cheetor methods > commandSafe registers module command when present 3`] = `"function"`;
+
+exports[`Cheetor methods > commandSmart handles module without description 1`] = `
+[
+  [
+    "nondesc",
+    "",
+  ],
+]
+`;
+
+exports[`Cheetor methods > commandSmart ignores module without command field 1`] = `[]`;
+
+exports[`Cheetor methods > commandSmart keeps cli when func returns nothing 1`] = `[]`;
+
+exports[`Cheetor methods > commandSmart registers command when module has one 1`] = `
+[
+  [
+    "smart",
+    "command smart",
+  ],
+]
+`;
+
+exports[`Cheetor methods > commandSmart registers module options and action 1`] = `
+[
+  {
+    "action": [Function],
+    "actionCalls": [
+      [MockFunction],
+    ],
+    "description": "command smart",
+    "option": [Function],
+    "optionCalls": [
+      [
+        "-f, --force",
+        "Force mode",
+      ],
+    ],
+    "rawName": "smart",
+  },
+]
+`;
+
+exports[`Cheetor methods > commandSmart registers module options and action 2`] = `[MockFunction]`;
+
+exports[`Cheetor methods > config calls the function with the cli 1`] = `"test"`;
+
+exports[`Cheetor methods > config calls the function with the cli 2`] = `"parsed"`;
+
+exports[`Cheetor methods > setup invokes action with parsed value 1`] = `"parsed"`;
+
+exports[`Cheetor methods > setup invokes action with parsed value 2`] = `"action"`;
+
+exports[`Cheetor methods > website stores site 1`] = `"https://site.com"`;
+
 exports[`integration via node child process > base 1`] = `
 [
   "",
@@ -38,7 +294,7 @@ exports[`integration via node child process > command help with options 1`] = `
   "",
   "Website: https://www.npmjs.com/package/cheetor",
   "",
-  "Repository: https://github.com/airkro/cheetor",
+  "Repository: https://github.com/Airkro/cheetor",
 ]
 `;
 
@@ -69,7 +325,7 @@ exports[`integration via node child process > help 1`] = `
   "",
   "Website: https://www.npmjs.com/package/cheetor",
   "",
-  "Repository: https://github.com/airkro/cheetor",
+  "Repository: https://github.com/Airkro/cheetor",
 ]
 `;
 
@@ -96,6 +352,102 @@ exports[`integration via node child process > okay 1`] = `
   "",
   "Website: https://www.npmjs.com/package/cheetor",
   "",
-  "Repository: https://github.com/airkro/cheetor",
+  "Repository: https://github.com/Airkro/cheetor",
+]
+`;
+
+exports[`lib > importFrom with bare path 1`] = `"function"`;
+
+exports[`lib > importFrom with relative path 1`] = `"test"`;
+
+exports[`lib > importFromSafe returns false on missing module 1`] = `false`;
+
+exports[`lib > importFromSafe success 1`] = `
+{
+  "action": [Function],
+  "command": "test",
+  "describe": "command test",
+  "options": [
+    [
+      "-f, --force",
+      "Force mode",
+    ],
+    [
+      "--level <level>",
+      "Level",
+      {
+        "default": "basic",
+      },
+    ],
+  ],
+}
+`;
+
+exports[`ready usage rendering > help callback adds repository section 1`] = `
+[
+  {
+    "body": "Repository: https://github.com/a/b",
+  },
+]
+`;
+
+exports[`ready usage rendering > help callback adds website section 1`] = `
+[
+  {
+    "body": "Website: https://site.com",
+  },
+]
+`;
+
+exports[`ready usage rendering > help callback customizes usage for no-command case 1`] = `
+[
+  {
+    "body": "test",
+  },
+  {
+    "body": "  $ test",
+    "title": "Usage",
+  },
+  {
+    "body": "-h, --help",
+    "title": "Options",
+  },
+]
+`;
+
+exports[`ready usage rendering > help callback keeps usage for command case 1`] = `
+[
+  {
+    "body": "test",
+  },
+  {
+    "body": "  $ test <command>",
+    "title": "Usage",
+  },
+  {
+    "body": "cmd  desc",
+    "title": "Commands",
+  },
+]
+`;
+
+exports[`ready usage rendering > help callback omits website when site is empty 1`] = `[]`;
+
+exports[`ready usage rendering > preserves custom usage text 1`] = `"custom usage"`;
+
+exports[`ready usage rendering > sets command usage when commands exist 1`] = `"<command>"`;
+
+exports[`ready usage rendering > sets empty usage when no commands 1`] = `""`;
+
+exports[`ready usage rendering > sets help callback with website and repository 1`] = `"function"`;
+
+exports[`ready usage rendering > sets help callback with website and repository 2`] = `
+[
+  {
+    "body": "Website: https://site.com",
+  },
+  {
+    "body": "Repository: https://github.com/a/b",
+  },
 ]
 `;

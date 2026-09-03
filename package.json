@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -17,10 +17,10 @@
   "homepage": "https://www.npmjs.com/package/cheetor",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/airkro/cheetor.git"
+    "url": "git+https://github.com/Airkro/cheetor.git"
   },
   "bugs": {
-    "url": "https://github.com/airkro/cheetor/issues"
+    "url": "https://github.com/Airkro/cheetor/issues"
   },
   "main": "dist/index.mts",
   "exports": "./dist/index.mts",
@@ -56,8 +56,8 @@
   },
   "packageManager": "pnpm@10.34.5",
   "engines": {
-    "node": ">=20.0.0 || >=24.0.0 || ^22.0.0",
-    "pnpm": "^10.33.2"
+    "node": ">=24.0.0",
+    "pnpm": "^10.34.5"
   },
   "publishConfig": {
     "access": "public",
