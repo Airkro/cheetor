@@ -1,6 +1,8 @@
+import pkg from '../../package.json' with { type: 'json' };
+
 import { Cheetor } from '../../src/index.mts';
 
-new Cheetor('../../package.json', import.meta.url)
+new Cheetor(pkg, import.meta.url)
   .command('static', 'command static')
   .commandSafe('qss')
   .commandFrom('../command.mjs')

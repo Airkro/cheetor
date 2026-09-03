@@ -1,5 +1,0 @@
-{
-  "extends": [
-    "github>airkro/renovate-config"
-  ]
-}

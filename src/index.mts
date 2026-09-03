@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-
 import { cac, type CAC } from 'cac';
 
 import { importFrom, importFromSafe } from './lib.mts';
@@ -85,18 +83,13 @@ export class Cheetor {
 
   site: string | undefined;
 
-  constructor(pkg: string | Pkg, root: string | URL = import.meta.url) {
+  constructor(pkg: Pkg, root: string | URL = import.meta.url) {
     this.root = root;
 
-    const data: Pkg =
-      typeof pkg === 'string'
-        ? JSON.parse(readFileSync(new URL(pkg, root)).toString())
-        : pkg;
-
-    const { bin, homepage, name = 'cheetor', version } = data;
+    const { bin, homepage, name = 'cheetor', version } = pkg;
     const { url = '' } =
-      data.repository && typeof data.repository === 'object'
-        ? data.repository
+      pkg.repository && typeof pkg.repository === 'object'
+        ? pkg.repository
         : {};
 
     this.homepage = homepage;

@@ -1,9 +1,15 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { importFrom, importFromSafe } from '../src/lib.mts';
 import { Cheetor } from '../src/index.mts';
 
 import { Run } from './helper/util.mts';
+
+const pkgData = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+);
 
 const h = vi.hoisted(() => {
   const created: Array<{ ctrl: any; cli: any }> = [];
@@ -141,8 +147,8 @@ describe('lib', () => {
 });
 
 describe('Cheetor constructor', () => {
-  it('reads a package.json string and extracts metadata', () => {
-    const { c } = makeCheetor('../package.json');
+  it('extracts metadata from pkg object', () => {
+    const { c } = makeCheetor(pkgData);
     expect(c.homepage).toBe('https://www.npmjs.com/package/cheetor');
     expect(c.repository).toBe('git+https://github.com/airkro/cheetor');
   });

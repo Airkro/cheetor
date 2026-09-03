@@ -1,3 +1,5 @@
+import pkg from '../../../package.json' with { type: 'json' };
+
 import { Cheetor } from '../../../src/index.mts';
 
-new Cheetor('../../../package.json', import.meta.url).setup();
+new Cheetor(pkg).setup();

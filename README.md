@@ -21,7 +21,12 @@ npm install cheetor --save
 ## Usage
 
 ```mjs
+import { readFileSync } from 'node:fs';
 import { Cheetor } from 'cheetor';
 
-new Cheetor('../package.json', import.meta.url).setup();
+const pkg = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+);
+
+new Cheetor(pkg).setup();
 ```
