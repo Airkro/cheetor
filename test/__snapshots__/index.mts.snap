@@ -22,7 +22,7 @@ exports[`integration via node child process > fail 1`] = `
 
 exports[`integration via node child process > help 1`] = `
 [
-  "cheetor/0.13.1",
+  "cheetor/0.14.0",
   "",
   "Usage:",
   "  $ cheetor",
@@ -39,7 +39,7 @@ exports[`integration via node child process > help 1`] = `
 
 exports[`integration via node child process > okay 1`] = `
 [
-  "cheetor/0.13.1",
+  "cheetor/0.14.0",
   "",
   "Usage:",
   "  $ cheetor <command>",

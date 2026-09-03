@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -49,7 +49,7 @@
     "@types/node": "^26.4.1",
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.9.1",
-    "garou": "^0.9.21",
+    "garou": "^0.9.22",
     "prettier": "~3.9.6",
     "typescript": "~6.0.3",
     "vitest": "^4.1.11"
