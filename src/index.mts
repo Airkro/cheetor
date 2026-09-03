@@ -6,9 +6,15 @@ import { importFrom, importFromSafe } from './lib.mts';
 
 type Bin = string | Record<string, string> | undefined;
 
+type OptionSpec =
+  | [name: string, description: string]
+  | [name: string, description: string, config: object];
+
 type Module = {
   command?: string;
   describe?: string;
+  options?: OptionSpec[];
+  action?: (...args: unknown[]) => unknown;
 };
 
 type Cli = CAC;
@@ -31,15 +37,36 @@ function parseBin(bin: Bin, name: string): string | false {
   const bins = Object.keys(bin);
 
   if (bins.length === 1) {
-    return bins[0] ?? name;
+    for (const only of bins) {
+      return only;
+    }
   }
 
   return false;
 }
 
-function register(cli: Cli, { command, describe }: Module): void {
+function register(cli: Cli, module: Module): void {
+  const { command, describe, options, action } = module;
+
   if (typeof command === 'string') {
-    cli.command(command, typeof describe === 'string' ? describe : '');
+    const cmd = cli.command(
+      command,
+      typeof describe === 'string' ? describe : '',
+    );
+
+    const specs = options ?? [];
+
+    for (const [name, description, config] of specs) {
+      if (config) {
+        cmd.option(name, description, config);
+      } else {
+        cmd.option(name, description);
+      }
+    }
+
+    if (typeof action === 'function') {
+      cmd.action(action);
+    }
   }
 }
 

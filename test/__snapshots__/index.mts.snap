@@ -6,6 +6,42 @@ exports[`integration via node child process > base 1`] = `
 ]
 `;
 
+exports[`integration via node child process > command action with force option 1`] = `
+[
+  "force=true level=basic",
+]
+`;
+
+exports[`integration via node child process > command action with level option 1`] = `
+[
+  "force=undefined level=advanced",
+]
+`;
+
+exports[`integration via node child process > command action without options 1`] = `
+[
+  "force=undefined level=basic",
+]
+`;
+
+exports[`integration via node child process > command help with options 1`] = `
+[
+  "cheetor/0.14.0",
+  "",
+  "Usage:",
+  "  $ cheetor test",
+  "",
+  "Options:",
+  "  -f, --force      Force mode ",
+  "  --level <level>  Level (default: basic)",
+  "  -h, --help       Display this message ",
+  "",
+  "Website: https://www.npmjs.com/package/cheetor",
+  "",
+  "Repository: https://github.com/airkro/cheetor",
+]
+`;
+
 exports[`integration via node child process > deep 1`] = `
 [
   "",

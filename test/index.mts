@@ -58,9 +58,20 @@ const h = vi.hoisted(() => {
       },
       command(...args: any[]) {
         ctrl.commandCalls.push(args);
-        const cmd: any = { rawName: args[0], description: args[1] || '' };
-        cmd.action = () => cmd;
-        cmd.option = () => cmd;
+        const cmd: any = {
+          rawName: args[0],
+          description: args[1] || '',
+          optionCalls: [] as any[],
+          actionCalls: [] as any[],
+        };
+        cmd.action = (fn: any) => {
+          cmd.actionCalls.push(fn);
+          return cmd;
+        };
+        cmd.option = (...oargs: any[]) => {
+          cmd.optionCalls.push(oargs);
+          return cmd;
+        };
         ctrl.commands.push(cmd);
         return cmd;
       },
@@ -210,6 +221,28 @@ describe('Cheetor methods', () => {
     expect(ctrl.commandCalls[0]).toEqual(['test', 'command test']);
   });
 
+  it('command registers module options and action', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    const action = vi.fn();
+    c.command({
+      command: 'test',
+      describe: 'command test',
+      options: [
+        ['-f, --force', 'Force mode'],
+        ['--level <level>', 'Level', { default: 'basic' }],
+      ],
+      action,
+    });
+    await c.setup();
+    expect(ctrl.commands).toHaveLength(1);
+    expect(ctrl.commands[0].optionCalls).toEqual([
+      ['-f, --force', 'Force mode'],
+      ['--level <level>', 'Level', { default: 'basic' }],
+    ]);
+    expect(ctrl.commands[0].actionCalls).toHaveLength(1);
+    expect(ctrl.commands[0].actionCalls[0]).toBe(action);
+  });
+
   it('command handles missing description', async () => {
     const { c, ctrl } = makeCheetor({ name: 'test' });
     c.command('onlyname');
@@ -246,6 +279,12 @@ describe('Cheetor methods', () => {
     await c.setup();
     expect(ctrl.commandCalls).toHaveLength(1);
     expect(ctrl.commandCalls[0]).toEqual(['test', 'command test']);
+    expect(ctrl.commands[0].optionCalls).toEqual([
+      ['-f, --force', 'Force mode'],
+      ['--level <level>', 'Level', { default: 'basic' }],
+    ]);
+    expect(ctrl.commands[0].actionCalls).toHaveLength(1);
+    expect(typeof ctrl.commands[0].actionCalls[0]).toBe('function');
   });
 
   it('commandSafe registers module command when present', async () => {
@@ -254,6 +293,12 @@ describe('Cheetor methods', () => {
     await c.setup();
     expect(ctrl.commandCalls).toHaveLength(1);
     expect(ctrl.commandCalls[0]).toEqual(['test', 'command test']);
+    expect(ctrl.commands[0].optionCalls).toEqual([
+      ['-f, --force', 'Force mode'],
+      ['--level <level>', 'Level', { default: 'basic' }],
+    ]);
+    expect(ctrl.commands[0].actionCalls).toHaveLength(1);
+    expect(typeof ctrl.commands[0].actionCalls[0]).toBe('function');
   });
 
   it('commandFrom handles module without description', async () => {
@@ -306,6 +351,24 @@ describe('Cheetor methods', () => {
     await c.setup();
     expect(ctrl.commandCalls).toHaveLength(1);
     expect(ctrl.commandCalls[0]).toEqual(['nondesc', '']);
+  });
+
+  it('commandSmart registers module options and action', async () => {
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    const action = vi.fn();
+    c.commandSmart(() => ({
+      command: 'smart',
+      describe: 'command smart',
+      options: [['-f, --force', 'Force mode']],
+      action,
+    }));
+    await c.setup();
+    expect(ctrl.commands).toHaveLength(1);
+    expect(ctrl.commands[0].optionCalls).toEqual([
+      ['-f, --force', 'Force mode'],
+    ]);
+    expect(ctrl.commands[0].actionCalls).toHaveLength(1);
+    expect(ctrl.commands[0].actionCalls[0]).toBe(action);
   });
 
   it('commandSmart ignores module without command field', async () => {
@@ -468,5 +531,38 @@ describe('integration via node child process', () => {
       .catch((error: any) => {
         expect(error.info).toMatchSnapshot();
       });
+  });
+
+  it('command action with force option', async () => {
+    const stdout = await Run(
+      './test/fixture/command-action.mjs',
+      'test',
+      '--force',
+    );
+    expect(stdout).toMatchSnapshot();
+  });
+
+  it('command action with level option', async () => {
+    const stdout = await Run(
+      './test/fixture/command-action.mjs',
+      'test',
+      '--level',
+      'advanced',
+    );
+    expect(stdout).toMatchSnapshot();
+  });
+
+  it('command action without options', async () => {
+    const stdout = await Run('./test/fixture/command-action.mjs', 'test');
+    expect(stdout).toMatchSnapshot();
+  });
+
+  it('command help with options', async () => {
+    const stdout = await Run(
+      './test/fixture/command-action.mjs',
+      'test',
+      '--help',
+    );
+    expect(stdout).toMatchSnapshot();
   });
 });
