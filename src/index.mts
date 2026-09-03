@@ -13,6 +13,8 @@ type Module = {
 
 type Cli = CAC;
 
+type Parsed = ReturnType<Cli['parse']>;
+
 type Pkg = {
   bin?: Bin;
   homepage?: string;
@@ -29,7 +31,7 @@ function parseBin(bin: Bin, name: string): string | false {
   const bins = Object.keys(bin);
 
   if (bins.length === 1) {
-    return bins[0] as string;
+    return bins[0] ?? name;
   }
 
   return false;
@@ -59,9 +61,9 @@ export class Cheetor {
   constructor(pkg: string | Pkg, root: string | URL = import.meta.url) {
     this.root = root;
 
-    const data =
+    const data: Pkg =
       typeof pkg === 'string'
-        ? (JSON.parse(readFileSync(new URL(pkg, root)).toString()) as Pkg)
+        ? JSON.parse(readFileSync(new URL(pkg, root)).toString())
         : pkg;
 
     const { bin, homepage, name = 'cheetor', version } = data;
@@ -154,7 +156,7 @@ export class Cheetor {
     return this;
   }
 
-  setup(action?: (parsed: unknown) => unknown): Promise<unknown> {
+  setup<T = Parsed>(action?: (parsed: Parsed) => T): Promise<T | Parsed> {
     return this.cli
       .then((cli) => {
         const { homepage, repository, site = homepage } = this;

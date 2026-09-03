@@ -3,9 +3,7 @@ function resolve(path: string, root = ''): string {
 }
 
 export async function importFrom<T>(path: string, root = ''): Promise<T> {
-  const module = await import(/* webpackIgnore: true */ resolve(path, root));
-
-  return module as T;
+  return import(/* webpackIgnore: true */ resolve(path, root));
 }
 
 export async function importFromSafe<T>(
@@ -16,10 +14,13 @@ export async function importFromSafe<T>(
 
   try {
     return await importFrom<T>(path, root);
-  } catch (error: unknown) {
-    const cause = error as { code?: string; message?: string };
-
-    if (cause.code === 'ERR_MODULE_NOT_FOUND' && cause.message?.includes(io)) {
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      error.code === 'ERR_MODULE_NOT_FOUND' &&
+      error.message.includes(io)
+    ) {
       return false;
     }
 
