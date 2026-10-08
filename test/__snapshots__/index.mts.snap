@@ -329,6 +329,12 @@ exports[`integration via node child process > help 1`] = `
 ]
 `;
 
+exports[`integration via node child process > nested subcommand with inherited options 1`] = `
+[
+  "env=prod name=api fast=true",
+]
+`;
+
 exports[`integration via node child process > okay 1`] = `
 [
   "cheetor/0.14.2",
@@ -349,6 +355,23 @@ exports[`integration via node child process > okay 1`] = `
   "Options:",
   "  -h, --help     Display this message ",
   "  -v, --version  Display version number ",
+  "",
+  "Website: https://www.npmjs.com/package/cheetor",
+  "",
+  "Repository: https://github.com/Airkro/cheetor",
+]
+`;
+
+exports[`integration via node child process > subcommand help lists nested command 1`] = `
+[
+  "cheetor/0.14.2",
+  "",
+  "Usage:",
+  "  $ cheetor deploy",
+  "",
+  "Options:",
+  "  -e, --env <env>  Target environment ",
+  "  -h, --help       Display this message ",
   "",
   "Website: https://www.npmjs.com/package/cheetor",
   "",

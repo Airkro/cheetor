@@ -326,6 +326,45 @@ describe('Cheetor methods', () => {
     expect(ctrl.commandCalls).toMatchSnapshot();
   });
 
+  it('command chains subcommands with inherited options', async () => {
+    const originalArgv = process.argv;
+    process.argv = [
+      'node',
+      'test',
+      'deploy',
+      'rollout',
+      'api',
+      '--env',
+      'prod',
+      '--fast',
+    ];
+    const { c, ctrl } = makeCheetor({ name: 'test' });
+    const action = vi.fn();
+    const deploy = c
+      .command('deploy', 'Deploy things')
+      .option('-e, --env <env>', 'Target environment');
+    deploy
+      .command('rollout <name>', 'Rollout a service')
+      .option('-f, --fast', 'Fast rollout')
+      .action(action);
+    await c.setup();
+    const root = firstCommand(ctrl);
+    // the matched leaf command folds parent + child options into one cac command
+    expect(root.rawName).toBe('deploy rollout <name>');
+    expect(root.optionCalls).toEqual([
+      ['-e, --env <env>', 'Target environment'],
+      ['-f, --fast', 'Fast rollout'],
+    ]);
+    // routing dispatches to the matched leaf action with the node's own args
+    const router = root.actionCalls[0] as (
+      name: string,
+      options: object,
+    ) => void;
+    router('api', { env: 'prod', fast: true });
+    expect(action).toHaveBeenCalledWith('api', { env: 'prod', fast: true });
+    process.argv = originalArgv;
+  });
+
   it('commandFrom imports a module and registers a command', async () => {
     const { c, ctrl } = makeCheetor({ name: 'test' }, FIXTURE);
     c.commandFrom('./command.mjs');
@@ -592,6 +631,24 @@ describe('integration via node child process', () => {
       'test',
       '--help',
     );
+    expect(stdout).toMatchSnapshot();
+  });
+
+  it('nested subcommand with inherited options', async () => {
+    const stdout = await Run(
+      './test/fixture/subcommand.mjs',
+      'deploy',
+      'rollout',
+      'api',
+      '--env',
+      'prod',
+      '--fast',
+    );
+    expect(stdout).toMatchSnapshot();
+  });
+
+  it('subcommand help lists nested command', async () => {
+    const stdout = await Run('./test/fixture/subcommand.mjs', 'deploy', '-h');
     expect(stdout).toMatchSnapshot();
   });
 });
