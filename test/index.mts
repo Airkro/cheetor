@@ -341,7 +341,7 @@ describe('Cheetor methods', () => {
     const { c, ctrl } = makeCheetor({ name: 'test' });
     const action = vi.fn();
     const deploy = c
-      .command('deploy', 'Deploy things')
+      .subcommand('deploy', 'Deploy things')
       .option('-e, --env <env>', 'Target environment');
     deploy
       .command('rollout <name>', 'Rollout a service')

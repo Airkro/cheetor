@@ -171,9 +171,7 @@ export class CommandBuilder {
   }
 
   private scheduleRegistration(): void {
-    this.cheetor.schedule((cli) => {
-      const { matched } = this.cheetor;
-
+    this.cheetor.schedule((cli, matched) => {
       if (matched === null || matched.root !== this) {
         const cmd = cli.command(
           this.argSpec ? `${this.token} ${this.argSpec}` : this.token,
@@ -297,24 +295,9 @@ export class CommandBuilder {
     return this;
   }
 
-  commandSafe(path: string): this {
-    this.cheetor.commandSafe(path);
-
-    return this;
-  }
-
-  commandFrom(path: string): this {
-    this.cheetor.commandFrom(path);
-
-    return this;
-  }
-
-  commandSmart(func: () => Module | undefined): this {
-    this.cheetor.commandSmart(func);
-
-    return this;
-  }
-
+  /**
+  Terminal for a `Cheetor.subcommand()` chain: runs the owning program.
+  */
   setup<T = Parsed>(action?: (parsed: Parsed) => T): Promise<T | Parsed> {
     return this.cheetor.setup(action);
   }
@@ -329,7 +312,7 @@ export class Cheetor {
 
   private roots: CommandBuilder[] = [];
 
-  matched: Matched | null = null;
+  private matched: Matched | null = null;
 
   homepage: string | undefined;
 
@@ -442,35 +425,36 @@ export class Cheetor {
     return this;
   }
 
-  schedule(func: (cli: Cli) => void): void {
+  schedule(func: (cli: Cli, matched: Matched | null) => void): void {
     this.cli = this.cli.then((cli) => {
-      func(cli);
+      func(cli, this.matched);
 
       return cli;
     });
   }
 
-  command(name: string, description?: string): CommandBuilder;
+  command(name: string, description?: string): this;
   command(module: Module): this;
-  command(
-    target: string | Module,
-    description?: string,
-  ): CommandBuilder | this {
-    if (typeof target === 'string') {
-      const builder = new CommandBuilder(this, undefined, target, description);
-
-      this.roots.push(builder);
-
-      return builder;
-    }
-
+  command(target: string | Module, description?: string): this {
     this.cli = this.cli.then((cli) => {
-      register(cli, target);
+      if (typeof target === 'string') {
+        cli.command(target, description ?? '');
+      } else {
+        register(cli, target);
+      }
 
       return cli;
     });
 
     return this;
+  }
+
+  subcommand(name: string, description?: string): CommandBuilder {
+    const builder = new CommandBuilder(this, undefined, name, description);
+
+    this.roots.push(builder);
+
+    return builder;
   }
 
   commandFrom(path: string): this {

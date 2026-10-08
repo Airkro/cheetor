@@ -3,7 +3,7 @@ import pkg from '../../package.json' with { type: 'json' };
 import { Cheetor } from '../../src/index.mts';
 
 new Cheetor(pkg, import.meta.url)
-  .command('deploy', 'Deploy things')
+  .subcommand('deploy', 'Deploy things')
   .option('-e, --env <env>', 'Target environment')
   .command('rollout <name>', 'Rollout a service')
   .option('-f, --fast', 'Fast rollout')
