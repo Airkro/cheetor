@@ -7,12 +7,9 @@ new Cheetor(pkg, import.meta.url)
     deploy.option('-e, --env <env>', 'Target environment');
 
     deploy.command('rollout <name>', 'Rollout a service', (rollout) => {
-      rollout
-        .alias('go')
-        .option('-f, --fast', 'Fast rollout')
-        .action((name, options) => {
-          console.log(`env=${options.env} name=${name} fast=${options.fast}`);
-        });
+      rollout.alias('go').option('-f, --fast', 'Fast rollout');
     });
   })
-  .setup();
+  .setup((parsed) => {
+    console.log(JSON.stringify(parsed));
+  });

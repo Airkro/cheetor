@@ -1,27 +1,41 @@
-import { cac, type CAC, type Command } from 'cac';
+import { Command } from 'commander';
 
 import { importFrom, importFromSafe } from './lib.mts';
 
-type Bin = string | Record<string, string> | undefined;
+/*
+Public authoring types: exported so consumers can annotate reusable command
+objects, option lists, `setup()` handlers, and the `pkg` passed to `Cheetor`.
+*/
+export type Bin = string | Record<string, string> | undefined;
 
-type OptionConfig = object;
+export type OptionConfig = { default?: unknown } & object;
 
-type OptionSpec =
+export type OptionSpec =
   | [name: string, description: string]
   | [name: string, description: string, config: OptionConfig];
 
-type Module = {
+export type Module = {
   command?: string;
   describe?: string;
   options?: OptionSpec[];
   action?: (...args: unknown[]) => unknown;
 };
 
-type Cli = CAC;
+type Cli = Command;
 
-type Parsed = ReturnType<Cli['parse']>;
+/**
+Shared cell threaded through `build` so the action wrapper can record which
+Commander `Command` actually handled the parse; `setup` reads it for `parsed`.
+*/
+type CommandSink = { command?: Command };
 
-type Pkg = {
+export type Parsed = {
+  name: string;
+  args: string[];
+  options: Record<string, unknown>;
+};
+
+export type Pkg = {
   bin?: Bin;
   homepage?: string;
   name?: string;
@@ -36,102 +50,81 @@ function parseBin(bin: Bin, name: string): string | false {
 
   const bins = Object.keys(bin);
 
-  if (bins.length === 1) {
-    for (const only of bins) {
-      return only;
-    }
+  if (bins.length !== 1) {
+    return false;
   }
 
-  return false;
-}
-
-function register(cli: Cli, module: Module): void {
-  const { command, describe, options, action } = module;
-
-  if (typeof command !== 'string') {
-    return;
-  }
-
-  const cmd = cli.command(
-    command,
-    typeof describe === 'string' ? describe : '',
-  );
-
-  const specs = options ?? [];
-
-  for (const [name, description, config] of specs) {
-    if (config) {
-      cmd.option(name, description, config);
-    } else {
-      cmd.option(name, description);
-    }
-  }
-
-  if (typeof action === 'function') {
-    cmd.action(action);
-  }
-}
-
-function parseOptionName(nameSpec: string): { short?: string; long?: string } {
-  const tokens = nameSpec
-    .trim()
-    .split(/[,\s]+/)
-    .filter(Boolean);
-  let short: string | undefined;
-  let long: string | undefined;
-
-  for (const token of tokens) {
-    const cut = token.search(/[<[]/);
-    const base = (cut === -1 ? token : token.slice(0, cut)).replace(/^-+/, '');
-
-    if (token.startsWith('--')) {
-      long = base;
-    } else if (token.startsWith('-')) {
-      short = base;
-    }
-  }
-
-  return { short, long };
-}
-
-function isValueOption(spec: OptionSpec): boolean {
-  return spec[0].includes('<') || spec[0].includes('[');
-}
-
-type Matched = {
-  root: CommandBuilder;
-  node: CommandBuilder;
-  pathTokens: string[];
-  pathIndices: number[];
-};
-
-function rewriteArgv(argv: string[], matched: Matched | null): string[] {
-  if (!matched) {
-    return argv;
-  }
-
-  const slice = argv.slice(2);
-  const skip = new Set(matched.pathIndices);
-  const rest = slice.filter((_, index) => !skip.has(index));
-
-  return [...argv.slice(0, 2), matched.pathTokens.join(' '), ...rest];
+  return bins[0] ?? false;
 }
 
 /*
-Commander / yargs style subcommands on top of cac.
-
-cac only matches the first argv token as the command name, so cheetor builds a
-subcommand tree and, at parse time, folds the matched command path into a single
-synthetic cac command that carries exactly the options valid for that path
-(ancestors' options are inherited, the node's own options are added, and
-nothing else). This keeps every option attributed to the correct parent/child
-level instead of leaking a child's option onto its parent.
+cac took an option config object (`{ default }`); Commander takes the default
+value as the third positional argument, so translate the spec before registering.
 */
-export class CommandBuilder {
-  private cheetor: Cheetor;
+function applyOption(cmd: Command, spec: OptionSpec): void {
+  const [name, description, config] = spec;
 
-  private parent?: CommandBuilder;
+  if (config && 'default' in config && config.default !== undefined) {
+    cmd.addOption(cmd.createOption(name, description).default(config.default));
 
+    return;
+  }
+
+  cmd.option(name, description);
+}
+
+/*
+Normalize Commander's action args `(...positionals, options, command)` into the
+shape cheetor exposes: `(...positionals, options)`. Commander's `Command`
+instance is hidden so callers never depend on the engine. Options come from
+`optsWithGlobals()` so a command sees the merged view of its own options plus
+every ancestor's (Commander's native option inheritance), which is what makes
+`cheetor parent sub --ancestor-flag` work without cheetor copying flags down the
+tree itself. Returning the handler result lets setup()'s parseAsync() await
+async actions before the process exits.
+*/
+function callAction(
+  fn: (...args: unknown[]) => unknown,
+  args: unknown[],
+): void | Promise<void> {
+  const command = args.at(-1) as Command;
+  const positionals = args.slice(0, -2);
+
+  const result = fn(...positionals, command.optsWithGlobals());
+
+  return result as void | Promise<void>;
+}
+
+function repositoryText(repository: string): string {
+  return repository.replace(/^git\+/, '').replace(/\.git$/, '');
+}
+
+/*
+Nested subcommands on top of Commander. Commander matches a real command tree and
+already handles option inheritance: an ancestor's option can appear after a
+subcommand token and is surfaced through `optsWithGlobals()`. So cheetor declares
+each option only on its own command and adds no positional-options or
+ancestor-option copying of its own — it stays a thin preset over the engine.
+*/
+/**
+The public surface handed to a `builder` callback: only the fluent authoring
+methods. The engine-lowering plumbing (`build`, `createChild`, `registerModule`,
+...) stays internal to cheetor so callers cannot drive the Commander
+construction directly or be tripped by `command()` returning `this`.
+*/
+export interface SubcommandBuilder {
+  command(
+    name: string,
+    description?: string,
+    builder?: (node: SubcommandBuilder) => void,
+  ): this;
+  option(name: string, description: string, config?: OptionConfig): this;
+  action(fn: (...args: unknown[]) => unknown): this;
+  alias(name: string): this;
+  description(text: string): this;
+}
+
+class CommandBuilder implements SubcommandBuilder {
   private rawName: string;
 
   private token: string;
@@ -146,23 +139,12 @@ export class CommandBuilder {
 
   private children = new Map<string, CommandBuilder>();
 
-  constructor(
-    cheetor: Cheetor,
-    parent: CommandBuilder | undefined,
-    rawName: string,
-    description?: string,
-  ) {
-    this.cheetor = cheetor;
-    this.parent = parent;
+  constructor(rawName: string, description?: string) {
     this.rawName = rawName;
     this.token = rawName.split(/\s+/, 1)[0] || rawName;
 
     if (description) {
       this.ownDescription = description;
-    }
-
-    if (!parent) {
-      this.scheduleRegistration();
     }
   }
 
@@ -170,103 +152,56 @@ export class CommandBuilder {
     return this.rawName.split(/\s+/).slice(1).join(' ');
   }
 
-  private scheduleRegistration(): void {
-    this.cheetor.schedule((cli, matched) => {
-      if (matched === null || matched.root !== this) {
-        const cmd = cli.command(
-          this.argSpec ? `${this.token} ${this.argSpec}` : this.token,
-          this.ownDescription,
-        );
-
-        this.applyAliases(cmd, this.aliases);
-        this.applyOptions(cmd, this.ownOptions);
-
-        if (this.actionFn) {
-          cmd.action(this.actionFn);
-        }
-
-        return;
-      }
-
-      const { node } = matched;
-      const synName = matched.pathTokens.join(' ');
-      const cmd = cli.command(
-        node.argSpec ? `${synName} ${node.argSpec}` : synName,
-        node.ownDescription,
-      );
-
-      this.applyAliases(cmd, node.aliases);
-      this.applyOptions(cmd, node.cumulativeOptions());
-
-      cmd.action((...args: unknown[]) => {
-        if (node.actionFn) {
-          return node.actionFn(...args);
-        }
-
-        if (node.children.size > 0) {
-          const names = node.children.keys().toArray().join(', ');
-
-          process.stderr.write(`Available subcommands: ${names}\n`);
-
-          return undefined;
-        }
-
-        return undefined;
-      });
-    });
+  childList(): CommandBuilder[] {
+    return this.children.values().toArray();
   }
 
-  private applyAliases(cmd: Command, aliases: string[]): void {
-    for (const alias of aliases) {
-      cmd.alias(alias);
-    }
+  command(
+    name: string,
+    description?: string,
+    builder?: (node: SubcommandBuilder) => void,
+  ): this {
+    const child = this.createChild(name, description);
+    builder?.(child);
+
+    return this;
   }
 
-  private applyOptions(cmd: Command, specs: OptionSpec[]): void {
-    for (const spec of specs) {
-      if (spec.length === 3) {
-        cmd.option(spec[0], spec[1], spec[2]);
-      } else {
-        cmd.option(spec[0], spec[1]);
-      }
-    }
-  }
-
-  get tokenName(): string {
-    return this.token;
-  }
-
-  get aliasList(): string[] {
-    return this.aliases;
-  }
-
-  childOf(name: string): CommandBuilder | undefined {
-    return this.children.get(name);
-  }
-
-  /**
-  Options valid on this node: own plus every ancestor's, child wins on clash.
-  */
-  cumulativeOptions(): OptionSpec[] {
-    const inherited = this.parent ? this.parent.cumulativeOptions() : [];
-    const merged = [...inherited, ...this.ownOptions];
-    const byKey = new Map<string, OptionSpec>();
-
-    for (const spec of merged) {
-      const { short, long } = parseOptionName(spec[0]);
-
-      byKey.set(long ?? short ?? spec[0], spec);
-    }
-
-    return byKey.values().toArray();
-  }
-
-  command(name: string, description?: string): CommandBuilder {
-    const child = new CommandBuilder(this.cheetor, this, name, description);
+  createChild(name: string, description?: string): CommandBuilder {
+    const child = new CommandBuilder(name, description);
 
     this.children.set(child.token, child);
 
     return child;
+  }
+
+  /**
+  Turn a `Module` into a child node of this builder, so module-style commands
+  share the single data-tree path (`build`) instead of a parallel one. Returns
+  undefined when the module has no usable `command` string.
+  */
+  registerModule(module: Module): CommandBuilder | undefined {
+    if (typeof module.command !== 'string') {
+      return undefined;
+    }
+
+    const node = this.createChild(module.command);
+
+    if (typeof module.describe === 'string') {
+      node.description(module.describe);
+    }
+
+    const specs = module.options ?? [];
+
+    for (const spec of specs) {
+      node.option(spec[0], spec[1], spec[2]);
+    }
+
+    if (typeof module.action === 'function') {
+      node.action(module.action);
+    }
+
+    return node;
   }
 
   alias(name: string): this {
@@ -296,23 +231,66 @@ export class CommandBuilder {
   }
 
   /**
-  Terminal for a `Cheetor.subcommand()` chain: runs the owning program.
+  Materialize this node (and its subtree) as a Commander command under `parent`.
+  `sink` is a shared cell that records the `Command` whose action actually runs,
+  so `Cheetor.setup` can read the executed command back without re-walking the
+  tree (Commander's own dispatch is the single source of truth for what matched).
   */
-  setup<T = Parsed>(action?: (parsed: Parsed) => T): Promise<T | Parsed> {
-    return this.cheetor.setup(action);
+  build(parent: Command, sink?: CommandSink): Command {
+    const nameAndArgs = this.argSpec
+      ? `${this.token} ${this.argSpec}`
+      : this.token;
+
+    const cmd = parent.command(nameAndArgs).description(this.ownDescription);
+
+    for (const alias of this.aliases) {
+      cmd.alias(alias);
+    }
+
+    for (const spec of this.ownOptions) {
+      applyOption(cmd, spec);
+    }
+
+    for (const child of this.childList()) {
+      child.build(cmd, sink);
+    }
+
+    cmd.action((...args: unknown[]): void | Promise<void> => {
+      if (sink) {
+        sink.command = args.at(-1) as Command;
+      }
+
+      if (this.actionFn) {
+        return callAction(this.actionFn, args);
+      }
+
+      if (this.children.size > 0) {
+        const names = this.children.keys().toArray().join(', ');
+
+        process.stderr.write(`Available subcommands: ${names}\n`);
+      }
+    });
+
+    return cmd;
   }
 }
 
-function repositoryText(repository: string): string {
-  return repository.replace(/^git\+/, '').replace(/\.git$/, '');
+function toParsed(cmd: Command, executed?: Command): Parsed {
+  const leaf = executed ?? cmd;
+
+  return {
+    name: leaf.name(),
+    args: [...leaf.args],
+    options: { ...leaf.optsWithGlobals() },
+  };
 }
 
 export class Cheetor {
   private cli: Promise<Cli>;
 
-  private roots: CommandBuilder[] = [];
+  private program: CommandBuilder;
 
-  private matched: Matched | null = null;
+  private sink: CommandSink = {};
 
   homepage: string | undefined;
 
@@ -322,101 +300,69 @@ export class Cheetor {
 
   site: string | undefined;
 
+  version: string | undefined;
+
   constructor(pkg: Pkg, root: string | URL = import.meta.url) {
     this.root = root;
 
     const { bin, homepage, name = 'cheetor', version } = pkg;
-    const { url = '' } =
-      pkg.repository && typeof pkg.repository === 'object'
-        ? pkg.repository
-        : {};
+    const { repository } = pkg;
+    const repositoryUrl =
+      typeof repository === 'string' ? repository : (repository?.url ?? '');
 
     this.homepage = homepage;
-    this.repository = url.includes('github.com')
-      ? url.replace(/\.git$/, '')
+    this.version = version;
+    this.repository = repositoryUrl.includes('github.com')
+      ? repositoryUrl.replace(/\.git$/, '')
       : '';
 
-    const cli = cac(parseBin(bin, name) || name);
-
-    cli.help();
+    const cli = new Command(parseBin(bin, name) || name);
 
     if (version) {
-      cli.version(version);
+      cli.version(version, '-v, --version', 'Display version number');
     }
 
     this.cli = Promise.resolve(cli);
+
+    this.program = new CommandBuilder('');
   }
 
-  private findMatched(argvSlice: string[]): Matched | null {
-    let index = 0;
+  private decorateHelp(cli: Command): void {
+    const { homepage, repository, site = homepage, version } = this;
+    const hasWebsite = Boolean(site && site !== repository);
 
-    while (index < argvSlice.length && argvSlice[index]?.startsWith('-')) {
-      index += 1;
+    const footer: string[] = [];
+
+    if (hasWebsite) {
+      footer.push(`Website: ${site}`);
     }
 
-    if (index >= argvSlice.length) {
-      return null;
+    if (repository) {
+      footer.push(`Repository: ${repositoryText(repository)}`);
     }
 
-    const at = argvSlice[index];
+    const footerText = footer.length > 0 ? `\n${footer.join('\n\n')}` : '';
 
-    if (at === undefined) {
-      return null;
-    }
+    const visit = (cmd: Command): void => {
+      cmd.helpOption('-h, --help', 'Display this message');
 
-    const root = this.roots.find(
-      (entry) => entry.tokenName === at || entry.aliasList.includes(at),
-    );
-
-    if (!root) {
-      return null;
-    }
-
-    const pathTokens = [root.tokenName];
-    const pathIndices = [index];
-    let node: CommandBuilder = root;
-    let cursor = index + 1;
-
-    while (cursor < argvSlice.length) {
-      const token = argvSlice[cursor];
-
-      if (token === undefined) {
-        break;
+      // `after` help text is per-command (not inherited), so add it to each one.
+      if (footerText) {
+        cmd.addHelpText('after', footerText);
       }
 
-      if (token.startsWith('-')) {
-        const hasInlineValue = token.includes('=');
-        const name = token.replace(/^--?/, '').split('=', 1)[0] ?? '';
-        const spec = this.findOptionSpec(node, name);
-        const isTakesValue = spec !== undefined && isValueOption(spec);
-
-        cursor += !hasInlineValue && isTakesValue ? 2 : 1;
-      } else {
-        const child = node.childOf(token);
-
-        if (!child) {
-          break;
-        }
-
-        node = child;
-        pathTokens.push(token);
-        pathIndices.push(cursor);
-        cursor += 1;
+      for (const child of cmd.commands) {
+        visit(child);
       }
+    };
+
+    // `beforeAll` from the program is inherited by every subcommand's help, so
+    // the version header is added just once on the root.
+    if (version) {
+      cli.addHelpText('beforeAll', `${cli.name()}/${version}\n`);
     }
 
-    return { root, node, pathTokens, pathIndices };
-  }
-
-  private findOptionSpec(
-    node: CommandBuilder,
-    name: string,
-  ): OptionSpec | undefined {
-    return node.cumulativeOptions().find((spec) => {
-      const { short, long } = parseOptionName(spec[0]);
-
-      return long === name || short === name;
-    });
+    visit(cli);
   }
 
   config(func: (cli: Cli) => Cli): this {
@@ -425,23 +371,33 @@ export class Cheetor {
     return this;
   }
 
-  schedule(func: (cli: Cli, matched: Matched | null) => void): void {
-    this.cli = this.cli.then((cli) => {
-      func(cli, this.matched);
-
-      return cli;
-    });
-  }
-
-  command(name: string, description?: string): this;
+  command(
+    name: string,
+    description?: string,
+    builder?: (node: SubcommandBuilder) => void,
+  ): this;
   command(module: Module): this;
-  command(target: string | Module, description?: string): this {
+  command(
+    target: string | Module,
+    description?: string,
+    builder?: (node: SubcommandBuilder) => void,
+  ): this {
+    if (typeof target === 'string') {
+      const child = this.program.createChild(target, description);
+
+      builder?.(child);
+
+      this.cli = this.cli.then((cli) => {
+        child.build(cli, this.sink);
+
+        return cli;
+      });
+
+      return this;
+    }
+
     this.cli = this.cli.then((cli) => {
-      if (typeof target === 'string') {
-        cli.command(target, description ?? '');
-      } else {
-        register(cli, target);
-      }
+      this.program.registerModule(target)?.build(cli, this.sink);
 
       return cli;
     });
@@ -449,19 +405,11 @@ export class Cheetor {
     return this;
   }
 
-  subcommand(name: string, description?: string): CommandBuilder {
-    const builder = new CommandBuilder(this, undefined, name, description);
-
-    this.roots.push(builder);
-
-    return builder;
-  }
-
   commandFrom(path: string): this {
     this.cli = this.cli.then(async (cli) => {
       const module = await importFrom<Module>(path, String(this.root));
 
-      register(cli, module);
+      this.program.registerModule(module)?.build(cli, this.sink);
 
       return cli;
     });
@@ -474,7 +422,7 @@ export class Cheetor {
       const module = await importFromSafe<Module>(path, String(this.root));
 
       if (module) {
-        register(cli, module);
+        this.program.registerModule(module)?.build(cli, this.sink);
       }
 
       return cli;
@@ -488,7 +436,7 @@ export class Cheetor {
       const module = func();
 
       if (module) {
-        register(cli, module);
+        this.program.registerModule(module)?.build(cli, this.sink);
       }
 
       return cli;
@@ -504,48 +452,16 @@ export class Cheetor {
   }
 
   setup<T = Parsed>(action?: (parsed: Parsed) => T): Promise<T | Parsed> {
-    this.matched = this.findMatched(process.argv.slice(2));
+    return this.cli.then(async (cli) => {
+      this.decorateHelp(cli);
 
-    return this.cli
-      .then((cli) => {
-        const { homepage, repository, site = homepage } = this;
-        const { globalCommand, name } = cli;
+      // `parseAsync` awaits action handlers that return a promise, so async
+      // commands complete before the returned promise (and the process) ends.
+      await cli.parseAsync(process.argv);
 
-        const hasWebsite = Boolean(site && site !== repository);
-        const hasCommand = cli.commands.length > 0;
-        const { usageText } = globalCommand;
-        const defaultUsage = '<command> [options]';
+      const parsed = toParsed(cli, this.sink.command);
 
-        if (!usageText || usageText === defaultUsage) {
-          cli.usage(hasCommand ? '<command>' : '');
-        }
-
-        globalCommand.helpCallback = (sections) => {
-          const next = sections.map((section) =>
-            !hasCommand && section.title === 'Usage'
-              ? { title: 'Usage', body: `  $ ${name}` }
-              : section,
-          );
-
-          if (hasWebsite) {
-            next.push({ body: `Website: ${site}` });
-          }
-
-          if (repository) {
-            next.push({ body: `Repository: ${repositoryText(repository)}` });
-          }
-
-          return next;
-        };
-
-        return cli;
-      })
-      .then((cli) => {
-        const argv = rewriteArgv(process.argv, this.matched);
-
-        return typeof action === 'function'
-          ? action(cli.parse(argv))
-          : cli.parse(argv);
-      });
+      return typeof action === 'function' ? action(parsed) : parsed;
+    });
   }
 }

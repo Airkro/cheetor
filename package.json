@@ -1,6 +1,6 @@
 {
   "name": "cheetor",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "description": "Build interactive command line tools",
   "license": "MIT",
   "author": {
@@ -8,9 +8,9 @@
   },
   "keywords": [
     "builder",
-    "cac",
     "cheetor",
     "cli",
+    "commander",
     "helper",
     "utils"
   ],
@@ -22,8 +22,14 @@
   "bugs": {
     "url": "https://github.com/Airkro/cheetor/issues"
   },
+  "types": "dist/index.d.mts",
   "main": "dist/index.mjs",
-  "exports": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "default": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    }
+  },
   "files": [
     "dist"
   ],
@@ -41,7 +47,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "cac": "^7.0.0"
+    "commander": "^15.0.0"
   },
   "devDependencies": {
     "@bring-it/npm": "^0.9.6",
